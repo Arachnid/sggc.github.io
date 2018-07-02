@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 64bcd75d...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/brainfuck">BrainFuck interpreter</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0xff3c2241cd767b735b26f3bd62c39b57ce02123d/">0xff3c2241cd767b7...</a>
+        <tr><th>Submitted at</th><td>2018-05-25</td></tr>
+        <tr><th>Gas used</th><td>5213542</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity 0.4.24;
+
+contract BrainFuck {
+    // This implementation:    4560056 - but maybe some Pathological test cases will make in better 'live'?
+    /**
+     * @dev Executes a BrainFuck program, as described at https://en.wikipedia.org/wiki/Brainfuck.
+     *
+     * Memory cells, input, and output values are all expected to be 8 bit
+     * integers. Incrementing past 255 should overflow to 0, and decrementing
+     * below 0 should overflow to 255.
+     *
+     * Programs and input streams may be of any length. The memory tape starts
+     * at cell 0, and will never be moved below 0 or above 1023. No program will
+     * output more than 1024 values.
+     *
+     * @param program The BrainFuck program.
+     * @param input The program's input stream.
+     * @return The program's output stream. Should be exactly the length of the
+     *          number of outputs produced by the program.
+     */
+    function execute(bytes program, bytes input) public pure returns(bytes) {
+      uint i = 0;
+      uint d = 0;
+      uint8[1024] memory data;
+      uint8[1024] memory output;
+      uint output_pointer = 0;
+      uint input_pointer = 0;
+
+      uint[] memory jumpmap = new uint[](program.length);
+      uint[] memory jumpmaptmp = new uint[](program.length/2);
+      // Fill in the jumpmap
+      uint depth;
+      for (uint j=0; j&lt;program.length; j++){
+        if (program[j]=="["){
+          depth +=1;
+          jumpmaptmp[depth] = j;
+        } else if (program[j] == "]"){
+          jumpmap[j] = jumpmaptmp[depth]+1;
+          jumpmap[jumpmaptmp[depth]] = j+1;
+          depth -=1;
+        } else if (program[j] == "&gt;"){
+          i = 1;
+          while (program[j+i] == "&gt;"){
+            i+=1;
+          }
+          jumpmap[j] = i;
+          j+=i-1;
+        } else if (program[j] == "&lt;"){
+          i = 1;
+          while (program[j+i] == "&lt;"){
+            i+=1;
+          }
+          jumpmap[j] = i;
+          j+=i-1;
+        } else if (program[j] == "+"){
+          i = 1;
+          while (program[j+i] == "+"){
+            i+=1;
+          }
+          jumpmap[j] = i;
+          j+=i-1;
+        } else if (program[j] == "-"){
+          i = 1;
+          while (program[j+i] == "-"){
+            i+=1;
+          }
+          jumpmap[j] = i;
+          j+=i-1;
+        }
+      }
+      i=0;
+      while (i &lt; program.length){
+        byte instruction = program[i];
+        if (instruction=="&gt;"){
+          d+=jumpmap[i];
+          i+=jumpmap[i];
+        } else if (instruction=="&lt;"){
+          d-=jumpmap[i];
+          i+=jumpmap[i];
+        } else if (instruction=="+"){
+          data[d]+=uint8(jumpmap[i]);
+          i+=jumpmap[i];
+        } else if (instruction=="-"){
+          data[d]-=uint8(jumpmap[i]);
+          i+=jumpmap[i];
+        } else if (instruction=="."){
+          // output
+          output[output_pointer] = data[d];
+          output_pointer+=1;
+          i+=1;
+        } else if (instruction==","){
+          // input
+          data[d] = uint8(input[input_pointer]);
+          input_pointer+=1;
+          i+=1;
+        } else if (instruction == "["){
+          if (data[d]==0){
+            i=jumpmap[i];
+          }else {
+            i+=1;
+          }
+        } else if (instruction == "]"){
+          if (data[d]!=0){
+            i=jumpmap[i];
+          } else {
+            i+=1;
+          }
+        } else {
+          i+=1;
+        }
+      }
+
+      bytes memory ret = new bytes(output_pointer);
+      for (i=0; i&lt; output_pointer; i++){
+        ret[i] = byte(output[i]);
+      }
+      return ret;
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

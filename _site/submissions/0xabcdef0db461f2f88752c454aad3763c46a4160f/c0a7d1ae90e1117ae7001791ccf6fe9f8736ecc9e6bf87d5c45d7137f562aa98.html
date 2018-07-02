@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission c0a7d1ae...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/brainfuck">BrainFuck interpreter</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/">0xabcdef0db461f2f...</a>
+        <tr><th>Submitted at</th><td>2018-45-29</td></tr>
+        <tr><th>Gas used</th><td>2357989</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity 0.4.24;
+
+contract BrainFuck {
+    /**
+     * @dev Executes a BrainFuck program, as described at https://en.wikipedia.org/wiki/Brainfuck.
+     *
+     * Memory cells, input, and output values are all expected to be 8 bit
+     * integers. Incrementing past 255 should overflow to 0, and decrementing
+     * below 0 should overflow to 255.
+     *
+     * Programs and input streams may be of any length. The memory tape starts
+     * at cell 0, and will never be moved below 0 or above 1023. No program will
+     * output more than 1024 values.
+     *
+     * @param program The BrainFuck program.
+     * @param input The program's input stream.
+     * @return The program's output stream. Should be exactly the length of the
+     *          number of outputs produced by the program.
+     */
+    function execute(bytes program, bytes input) public pure returns(bytes) {
+        uint program_length = clean(program);
+        uint8[] memory ram = new uint8[](1024);
+        bytes memory output = new bytes(1024);
+        uint ptr;
+        uint pidx;
+        uint iidx;
+        uint oidx;
+        (ptr, pidx, iidx, oidx) = brainfuck(
+            program, input, program_length, ram, output,
+            0, 0, 0, 0
+        );
+        bytes memory ret = new bytes(oidx);
+        for (uint i = 0; i &lt; ret.length; i++) {
+            ret[i] = output[i];
+        }
+        return ret;
+    }
+
+    function clean(bytes program) internal pure returns(uint) {
+        uint i = 0;
+        uint j = 0;
+        byte token;
+        while (i &lt; program.length) {
+            token = program[i];
+            if (token &lt; 0x2b
+                    || token &gt; 0x5d
+                    || (token &gt; 0x2e &amp;&amp; token &lt; 0x3c)
+                    || (token &gt; 0x3e &amp;&amp; token &lt; 0x5b)
+                    || token == 0x3d
+                    || token == 0x5c) {
+            } else {
+                program[j] = token;
+                j++;
+            }
+            i++;
+        }
+        return j;
+    }
+
+    function brainfuck(
+        bytes program, bytes input, uint program_length,
+        uint8[] memory ram, bytes memory output,
+        uint ptr, uint pidx, uint iidx, uint oidx
+    ) internal pure returns(uint, uint, uint, uint) {
+        byte token;
+        uint stack;
+        while (pidx &lt; program_length) {
+            token = program[pidx];
+            if (token &lt; 0x30) {
+                if (token &lt; 0x2d) {
+                    if (token == 0x2b) {
+                        ram[ptr] += 1;
+                    } else {
+                        ram[ptr] = uint8(input[iidx]);
+                        iidx++;
+                    }
+                } else {
+                    if (token == 0x2d) {
+                        ram[ptr] -= 1;
+                    } else {
+                        output[oidx] = byte(ram[ptr]);
+                        oidx++;
+                    }
+                }
+            } else {
+                if (token &lt; 0x40) {
+                    if (token == 0x3c) {
+                        ptr -= 1;
+                    } else {
+                        ptr += 1;
+                    }
+                } else {
+                    if (token == 0x5b) {
+                        pidx++;
+                        stack = pidx;
+                        while (ram[ptr] &gt; 0) {
+                            (ptr, pidx, iidx, oidx) =
+                                brainfuck(
+                                    program, input, program_length,
+                                    ram, output,
+                                    ptr, stack, iidx, oidx);
+                        }
+                    } else {
+                        return (ptr, pidx, iidx, oidx);
+                    }
+                }
+            }
+            pidx++;
+        }
+        return (ptr, pidx, iidx, oidx);
+    }
+}
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

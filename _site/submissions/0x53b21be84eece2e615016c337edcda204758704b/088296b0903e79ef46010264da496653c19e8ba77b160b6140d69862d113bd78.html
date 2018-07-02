@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 088296b0...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/sort">Integer sorting</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e...</a>
+        <tr><th>Submitted at</th><td>2018-19-27</td></tr>
+        <tr><th>Gas used</th><td>910782</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+pragma solidity ^0.4.24;
+
+// 920981
+contract Sort {
+    // event Qsort(uint, uint, uint);
+    function qsort(uint[] mem, uint start, uint end) public pure {
+        uint tmp = end - start;
+        // emit Qsort(tmp, start, end);
+        uint a;
+        uint b;
+        uint i;
+        uint j;
+
+        if (tmp == 4) {
+            a = mem[start];
+            b = mem[start + 1];
+            i = mem[start + 2];
+            j = mem[start + 3];
+            tmp = 0;
+
+            if (a &gt; b) {a ^= b ^= a ^= b; tmp |= 3;}
+            if (i &gt; j) {i ^= j ^= i ^= j; tmp |= 12;}
+
+            if (a &gt; i) {a ^= i ^= a ^= i; tmp |= 5;}
+            if (b &gt; j) {b ^= j ^= b ^= j; tmp |= 10;}
+
+            if (b &gt; i) {b ^= i ^= b ^= i; tmp |= 6;}
+
+            if (tmp &amp; 1 != 0) mem[start] = a;
+            if (tmp &amp; 2 != 0) mem[start + 1] = b;
+            if (tmp &amp; 4 != 0) mem[start + 2] = i;
+            if (tmp &amp; 8 != 0) mem[start + 3] = j;
+        } else if (tmp &gt; 2) {
+            tmp = mem[(start + end) / 2];
+            i = start;
+            j = end - 1;
+            while(true) {
+                a = mem[i];
+                b = mem[j];
+                while (a &lt; tmp) {
+                    a = mem[++i];
+                }
+                while (b &gt; tmp) {
+                    b = mem[--j];
+                }
+
+                if (i &gt;= j) break;
+
+                mem[i++] = b;
+                mem[j--] = a;
+            }
+
+            qsort(mem, start, i);
+            qsort(mem, i, end);
+        } else if (tmp == 2) {
+            a = mem[start];
+            b = mem[start + 1];
+            if (a &gt; b) {
+                mem[start] = b;
+                mem[start + 1] = a;
+            }
+        }
+    }
+
+    function sort(uint[] input) public pure returns(uint[]) {
+        qsort(input, 0, input.length);
+
+        return input;
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

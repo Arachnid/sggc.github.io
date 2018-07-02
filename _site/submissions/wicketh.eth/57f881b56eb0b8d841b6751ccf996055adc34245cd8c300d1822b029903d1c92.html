@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 57f881b5...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/sort">Integer sorting</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/wicketh.eth/">wicketh.eth</a>
+        <tr><th>Submitted at</th><td>2018-55-11</td></tr>
+        <tr><th>Gas used</th><td>345757</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity ^0.4.23;
+
+contract Sort {
+    
+    function () external payable { assembly {
+        
+        // @author Remco Bloemen &lt;remco@wicked.ventures&gt;
+        
+        // Copy input to memory
+        calldatacopy(0, 4, calldatasize)
+        
+        // Special case for zero or one value
+        jumpi(done, lt(calldatasize, 0x84))
+        
+        // Recursively sort
+        sort(0x40, sub(calldatasize, 0x24))
+        function sort(lo, hi) {
+            
+            let lolo := lo
+            let hihi := hi
+            let d := sub(hi, lo)
+            
+            if lt(d, 96) {
+                
+                // Optimize for two
+                jumpi(three, gt(d, 32))
+                {
+                    let a := mload(lo)
+                    let b := mload(hi)
+                    jumpi(end, gt(b, a))
+                    mstore(lo, b)
+                    mstore(hi, a)
+                end:
+                }
+                jump(ret)
+                
+                // Optimize for three
+            three:
+                {
+                    let a := mload(lo)
+                    let b := mload(add(lo, 32))
+                    let c := mload(hi)
+                    jumpi(case1, gt(b, a))
+                    a
+                    b
+                    =: a
+                    =: b
+                case1:
+                    jumpi(case3, gt(c, b))
+                    b
+                    c
+                    =: b
+                    =: c
+                    jumpi(case3, gt(b, a))
+                    a
+                    b
+                    =: a
+                    =: b
+                case3:
+                    mstore(lo, a)
+                    mstore(add(lo, 32), b)
+                    mstore(hi, c)
+                }
+                jump(ret)
+            }
+            
+            // Partition
+            {
+                let pivot
+                let lov
+                let hiv
+                
+                // Compute pivot value
+                pivot := and(div(add(lo, hi), 2),
+0x0fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0
+                )
+                pivot := mload(pivot)
+                
+            loop:
+                lov := mload(lo)
+                hiv := mload(hi)
+                jumpi(loend, iszero(lt(lov, pivot)))
+            loloop:
+                lo := add(lo, 32)
+                lov := mload(lo)
+                jumpi(loloop, lt(lov, pivot))
+            loend:
+                jumpi(hiend, iszero(gt(hiv, pivot)))
+            hiloop:
+                hi := sub(hi, 32)
+                hiv := mload(hi)
+                jumpi(hiloop, gt(hiv, pivot))
+            hiend:
+                jumpi(end, iszero(lt(lo, hi)))
+                mstore(lo, hiv)
+                mstore(hi, lov)
+                lo := add(lo, 32)
+                hi := sub(hi, 32)
+                jump(loop)
+                
+            end:
+                lo := hi
+                hi := add(lo, 32)
+            }
+            
+            // Recurse
+            jumpi(sorthi, eq(lolo, lo))
+            sort(lolo, lo)
+        sorthi:
+            jumpi(ret, eq(hi, hihi))
+            sort(hi, hihi)
+        ret:
+        }
+        
+        
+    done:
+        return(0, sub(calldatasize, 4))
+    }}
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

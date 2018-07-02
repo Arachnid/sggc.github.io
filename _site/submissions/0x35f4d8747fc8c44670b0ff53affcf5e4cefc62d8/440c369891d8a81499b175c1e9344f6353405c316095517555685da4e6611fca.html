@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 440c3698...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/hexdecoder">Hex decoder</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0x35f4d8747fc8c44670b0ff53affcf5e4cefc62d8/">0x35f4d8747fc8c44...</a>
+        <tr><th>Submitted at</th><td>2018-17-09</td></tr>
+        <tr><th>Gas used</th><td>3297640</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity ^0.4.23;
+
+/*
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+contract HexDecoder {
+    // Convert an hexadecimal character to their value
+    function fromHexChar(uint c) public pure returns (uint) {
+        if (byte(c) &gt;= byte('0') &amp;&amp; byte(c) &lt;= byte('9')) {
+            return c - uint(byte('0'));
+        }
+        if (byte(c) &gt;= byte('a') &amp;&amp; byte(c) &lt;= byte('f')) {
+            return 10 + c - uint(byte('a'));
+        }
+        if (byte(c) &gt;= byte('A') &amp;&amp; byte(c) &lt;= byte('F')) {
+            return 10 + c - uint(byte('A'));
+        }
+    }
+
+    // Convert an hexadecimal string to raw bytes
+    function decode(string input) public pure returns (bytes output) {
+        bytes memory ss = bytes(input);
+        require(ss.length%2 == 0); // length must be even
+        bytes memory r = new bytes(ss.length/2);
+        for (uint i=0; i&lt;ss.length/2; ++i) {
+            r[i] = byte(fromHexChar(uint(ss[2*i])) * 16 +
+                        fromHexChar(uint(ss[2*i+1])));
+        }
+        return r;
+    }
+}
+
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

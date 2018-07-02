@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 52ce9cb7...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/sort">Integer sorting</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a>
+        <tr><th>Submitted at</th><td>2018-05-28</td></tr>
+        <tr><th>Gas used</th><td>174431</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity ^0.4.23;
+
+contract Sort {
+    /**
+     * @dev Sorts a list of integers in ascending order.
+     *
+     * The input list may be of any length.
+     *
+     * @param input The list of integers to sort.
+     * @return The sorted list.
+     */
+
+    // It's a sorting algorithm! I've gone for quicksort because mergesort consumes
+    // 2x memory and memory is expensive! I tried thinking of ways to implement an
+    // efficient counting/radix sort, but considering the numbers being sorted can
+    // be up to 256 bits none of the ideas I came up with were remotely competative with
+    // quicksort.
+
+    // This thing uses the Hoare partition scheme. I also test for worst-case
+    // 'perfect' runs of sorted or reverse-sorted data. A bit cheeky as in the
+    // general-case the overheads would probably not be worth the cost, but hey,
+    // this is code golf!
+
+    // For the pivot, we can get a pseudorandom index by using the amount of remaning gas
+    // as a base, then taking the modulus mod (difference between first and last partition index),
+    // then masking off the 5 least significant bits and adding to the first partition index to get
+    // a memory index to load the pivot from.
+
+    // When the partition sizes get down to 8 items or less I switch to an insertion
+    // sort algorithm. I believe optimized quicksorts usually switch to insertion sort
+    // at around 32/64 values, but I went with 8 because that's the maximum number of
+    // values that can be sorted with a pure stack-based implementation, which is super fast.
+    // I also use a lookup table to convert partition size to a jump destination for the
+    // relevant insertion sort, which is probably why Remix cheerfully crashes whenever I try
+    // to debug a transaction :/
+
+    function sort(uint[] input) external view returns(uint[]) {
+        assembly {
+            calldatacopy(0x100, 0x04, calldatasize)
+            if eq(calldatasize, 0x44) {
+                return(0x00, 0x40)
+            }
+            mstore(0x00, nothing_to_sort)
+            mstore(0x20, sort_two)
+            mstore(0x40, sort_three)
+            mstore(0x60, sort_four)
+            mstore(0x80, sort_five)
+            mstore(0xa0, sort_six)
+            mstore(0xc0, sort_seven)
+            mstore(0xe0, sort_eight)
+            let it := 0x160
+            let size := add(0x100, sub(calldatasize, 0x24))
+            let end := add(size, 0x20)
+            let prev := mload(0x140)
+            check_if_perfect_start:
+                jumpi(check_if_perfect_skip, gt(prev, mload(it)))
+                prev := mload(it)
+                it := add(it, 0x20)
+                jumpi(check_if_perfect_start, lt(it, end))
+                return(0x100, add(end, 0x40)) // hey it's perfect!
+            check_if_perfect_skip:
+                it := 0x160
+                prev := mload(0x140)
+            check_if_reverse_start:
+                jumpi(check_if_reverse_skip, lt(prev, mload(it)))
+                prev := mload(it)
+                it := add(it, 0x20)
+                jumpi(check_if_reverse_start, lt(it, end))
+                it := size
+                end := msize
+                for {} gt(it, 0x120) {} {
+                    mstore(msize, mload(it))
+                    it := sub(it, 0x20)
+                }
+                mstore(sub(end, 0x20), mload(0x120))
+                mstore(sub(end, 0x40), 0x20)
+                return(sub(end, 0x40), add(size, 0x60)) // hey it's reversed!
+            check_if_reverse_skip:
+
+            // one run of recursion will add the indices of the next set of partition start/end points on the stack
+            // we start by adding 0 onto the stack, at the start of our routine we check whether the next stack item is 0 to
+            // evaluate whether to proceed.
+            0
+            0x140 size // p_high p_low 0
+
+            asm_evaluate_stack:
+                0xe0 dup3 dup3 sub gt asm_partition jumpi // this is where the program flow gets...a little hard to follow
+                dup2 swap1 sub mload jump // p_low
+            nothing_to_sort:
+                pop
+                dup1 asm_evaluate_stack jumpi
+            asm_finish_sort:
+            0x04 calldatasize sub 0x100 return
+            0 0 0 0 0 0 0
+
+            asm_partition:          // p_high p_low
+                dup2 dup2 sub gas gas mul mod 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0 and dup3 add
+                // dup2 dup2 sub gas gas mulmod 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0 and dup3 add
+                // dup2 dup2 sub 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47 gas mulmod 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0 and dup3 add
+                // 0x20 0x20 dup4 dup4 sub div 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47 gas mulmod mul dup3 add
+                // dup2
+                mload               // p p_high p_low
+
+                0x20 dup4 sub       // i p p_high p_low
+                dup3 0x20 add       // j i p p_high p_low
+                asm_decrease_j jump
+
+                asm_partition_swap:
+                                    // j i p p_high p_low
+                    dup1 mload      // vj j i p p_high p_low
+                    dup3 mload      // vi vj j i p p_high p_low
+                    dup3 mstore     // vj j i p p_high p_low
+                    dup3 mstore     // j i p p_high p_low
+
+                asm_decrease_j:
+                    0x20 swap1 sub  // j i p p_high p_low
+                    dup3 dup2 mload gt asm_decrease_j jumpi
+                swap1               // i j p p_high p_low
+                asm_increase_i:
+                    0x20 add
+                    dup3 dup2 mload lt asm_increase_i jumpi
+                swap1
+                dup1 dup3 lt asm_partition_swap jumpi
+
+                swap2 pop pop       // p' p_high p_low
+                dup1 0x20 add       // p'' p' p_high p_low
+                swap3 swap1         // p' p_low p_high p''
+
+            0xe0 dup3 dup3 sub gt asm_partition jumpi
+            dup2 swap1 sub mload jump // p_low
+
+// This is where the main routine (sort of?) ends. Below are jump destinations for hardcoded insertion sorts for 2 &lt;= n &lt;= 8
+// ###########################################################################
+
+            sort_two:
+                dup1 0x20 add           // p1 p0
+                dup1 mload
+                dup3 mload              // v0 v1 p1 p0
+                lt two_0_1_skip jumpi   // p1 p0
+                dup1 mload              // v1 p1 p0
+                dup3 mload              // v0 v1 p1 p0
+                swap3 mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+                two_0_1_skip:           // p1 p0
+                pop pop
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+
+            sort_three:             // v1 v0 v2 p2 p1 p0
+                dup1 0x20 add       // p1
+                dup2 0x40 add       // p2 p1 p0
+                dup1 mload          // v2 p2 p1 p0
+                dup4 mload          // v0 v2 p2 p1 p0
+                dup4 mload          // v1 v0 v2 p2 p1 p0
+
+                dup3 dup2 lt three_1_2_skip jumpi // v1 v0 v2 p2 p1 p0
+                swap2
+                three_1_2_skip:
+                dup3 dup3 lt three_0_2_skip jumpi // v1 v0 v2 p2 p1 p0
+                swap1 swap2 swap1
+                three_0_2_skip:
+                dup1 dup3 lt three_0_1_skip jumpi // v1 v0 v2 p2 p1 p0
+                swap1
+                three_0_1_skip: // v1 v0 v2 p2 p1 p0
+                swap5 mstore    // v2 p2 p1 v1
+                swap1 mstore    // p1 v1
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+
+            sort_four:              // v1 v0 v3 v2 p3 p2 p1 p0
+                dup1 0x20 add
+                dup2 0x40 add
+                dup3 0x60 add       // p3 p2 p1 p0
+                dup2 mload
+                dup2 mload
+                dup6 mload
+                dup6 mload
+
+                dup1 dup3 lt four_0_1_skip jumpi // v1 v0 v3 v2 p3 p2 p1 p0
+                swap1
+                four_0_1_skip:
+                dup3 dup5 lt four_2_3_skip jumpi // v1 v0 v3 v2 p3 p2 p1 p0
+                swap2 swap3 swap2
+                four_2_3_skip:
+                dup4 dup3 lt four_0_2_skip jumpi // v1 v0 v3 v2 p3 p2 p1 p0
+                swap1 swap3 swap1
+                four_0_2_skip:
+                dup3 dup2 lt four_1_3_skip jumpi // v1 v0 v3 v2 p3 p2 p1 p0
+                swap2
+                four_1_3_skip:
+                dup4 dup2 lt four_1_2_skip jumpi // v1 v0 v3 v2 p3 p2 p1 p0
+                swap3
+                four_1_2_skip:          // v1 v0 v3 v2 p3 p2 p1 p0
+                swap7 mstore            // v3 v2 p3 p2 p1 v1
+                swap3 mstore            // p3 v3 p1 v1
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+        
+            sort_five:              // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                dup1 0x20 add
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x80 add       // p4 p3 p2 p1 p0
+                dup1 mload          // v4 p4 p3 p2 p1 p0
+                dup4 mload
+                dup4 mload          // v3 v2 v4 p4 p3 p2 p1 p0
+                dup8 mload
+                dup8 mload          // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+
+                dup1 dup3 lt five_0_1_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap1
+                five_0_1_skip:
+                dup5 dup4 lt five_3_4_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap2 swap4 swap2
+                five_3_4_skip:
+                dup5 dup5 lt five_2_4_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap3 swap4 swap3
+                five_2_4_skip:
+                dup3 dup5 lt five_2_3_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap2 swap3 swap2
+                five_2_3_skip:
+                dup5 dup2 lt five_1_4_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap4
+                five_1_4_skip:
+                dup3 dup3 lt five_0_3_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap1 swap2 swap1
+                five_0_3_skip:
+                dup4 dup3 lt five_0_2_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap1 swap3 swap1
+                five_0_2_skip:
+                dup3 dup2 lt five_1_3_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap2
+                five_1_3_skip:
+                dup4 dup2 lt five_1_2_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap3
+                five_1_2_skip:          // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap9 mstore            // v3 v2 v4 p4 p3 p2 p1 v1
+                swap5 mstore            // v4 p4 p3 v3 p1 v1
+                swap1 mstore            // p3 v3 p1 v1
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+                
+            sort_six:             // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                dup1 0x20 add
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x80 add
+                dup5 0xa0 add     // p5 p4 p3 p2 p1 p0
+                dup2 mload
+                dup2 mload
+                dup6 mload
+                dup6 mload
+                dup10 mload
+                dup10 mload         // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+
+                dup4 dup2 lt six_1_2_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap3
+                six_1_2_skip:
+                dup5 dup7 lt six_4_5_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap4 swap5 swap4
+                six_4_5_skip:
+                dup4 dup3 lt six_0_2_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap1 swap3 swap1
+                six_0_2_skip:
+                dup5 dup4 lt six_3_5_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap2 swap4 swap2
+                six_3_5_skip:
+                dup1 dup3 lt six_0_1_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap1
+                six_0_1_skip:
+                dup6 dup4 lt six_3_4_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap2 swap5 swap2
+                six_3_4_skip:
+                dup5 dup5 lt six_2_5_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap3 swap4 swap3
+                six_2_5_skip:
+                dup3 dup3 lt six_0_3_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap2 swap1 swap2
+                six_0_3_skip:
+                dup6 dup2 lt six_1_4_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap5
+                six_1_4_skip:
+                dup6 dup5 lt six_2_4_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap3 swap5 swap3
+                six_2_4_skip:
+                dup3 dup2 lt six_1_3_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap2
+                six_1_3_skip:
+                dup3 dup5 lt six_2_3_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap2 swap3 swap2
+                six_2_3_skip:                    // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap11 mstore                    // v3 v2 v5 v4 p5 p4 p3 p2 p1 v1
+                swap7 mstore                     // v5 v4 p5 p4 p3 v3 p1 v1
+                swap3 mstore                     // p5 v5 p3 v3 p1 v1
+                mstore
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+            sort_seven:             // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                dup1 0x20 add
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x80 add
+                dup5 0xa0 add
+                dup6 0xc0 add       // p6 p5 p4 p3 p2 p1 p0
+                dup1 mload          // v6 p6 p5 p4 p3 p2 p1 p0
+                dup4 mload          // v4 v6 p6 p5 p4 p3 p2 p1 p0
+                dup4 mload          // v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                dup8 mload          // v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                dup8 mload          // v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                dup12 mload         // v0 v2 v3 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                dup12 mload         // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+
+                dup4 dup2 lt seven_1_2_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap3
+                seven_1_2_skip:
+                dup6 dup4 lt seven_3_4_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap5 swap2
+                seven_3_4_skip:
+                dup7 dup6 lt seven_5_6_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap4 swap6 swap4
+                seven_5_6_skip:
+                dup4 dup3 lt seven_0_2_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap1 swap3 swap1
+                seven_0_2_skip:
+                dup5 dup4 lt seven_3_5_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap4 swap2
+                seven_3_5_skip:
+                dup7 dup7 lt seven_4_6_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap5 swap6 swap5
+                seven_4_6_skip:
+                dup1 dup3 lt seven_0_1_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap1
+                seven_0_1_skip:
+                dup5 dup7 lt seven_4_5_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap4 swap5 swap4
+                seven_4_5_skip:
+                dup7 dup5 lt seven_2_6_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap3 swap6 swap3
+                seven_2_6_skip:
+                dup6 dup3 lt seven_0_4_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap5 swap1 swap5
+                seven_0_4_skip:
+                dup5 dup2 lt seven_1_5_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap4
+                seven_1_5_skip:
+                dup3 dup3 lt seven_0_3_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap1 swap2 swap1
+                seven_0_3_skip:
+                dup5 dup5 lt seven_2_5_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap3 swap4 swap3
+                seven_2_5_skip:
+                dup3 dup2 lt seven_1_3_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap2
+                seven_1_3_skip:
+                dup6 dup5 lt seven_2_4_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap3 swap5 swap3
+                seven_2_4_skip:
+                dup3 dup5 lt seven_2_3_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap3 swap2
+                seven_2_3_skip:          // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap13 mstore           // v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 v1
+                swap9 mstore            // v5 v4 v6 p6 p5 p4 p3 v3 p1 v1
+                swap5 mstore            // v6 p6 p5 v5 p3 v3 p1 v1
+                swap1 mstore            // p5 v5 p3 v3 p1 v1
+                mstore
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+                    
+            sort_eight:
+                dup1 0x20 add
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x80 add
+                dup5 0xa0 add
+                dup6 0xc0 add
+                dup7 0xe0 add       // p7 p6 p5 p4 p3 p2 p1 p0
+                dup2 mload          // v6 p7 p6 p5 p4 p3 p2 p1 p0
+                dup2 mload          // v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                dup6 mload
+                dup6 mload          // v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                dup10 mload         // v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0 
+                dup10 mload         // v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                dup14 mload         // v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                dup14 mload         // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+
+                dup1 dup3 lt eight_0_1_skip jumpi
+                swap1
+                eight_0_1_skip:
+                dup3 dup5 lt eight_2_3_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap3 swap2
+                eight_2_3_skip:
+                dup5 dup7 lt eight_4_5_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap4 swap5 swap4
+                eight_4_5_skip:
+                dup7 dup9 lt eight_6_7_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap6 swap7 swap6
+                eight_6_7_skip:
+                dup4 dup3 lt eight_0_2_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap1 swap3 swap1
+                eight_0_2_skip:
+                dup3 dup2 lt eight_1_3_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap2
+                eight_1_3_skip:
+                dup8 dup7 lt eight_4_6_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap5 swap7 swap5
+                eight_4_6_skip:
+                dup7 dup6 lt eight_5_7_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap4 swap6 swap4
+                eight_5_7_skip:
+                dup4 dup2 lt eight_1_2_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap3
+                eight_1_2_skip:
+                dup8 dup6 lt eight_5_6_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap4 swap7 swap4
+                eight_5_6_skip:
+                dup6 dup3 lt eight_0_4_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap1 swap5 swap1
+                eight_0_4_skip:
+                dup7 dup4 lt eight_3_7_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap6 swap2
+                eight_3_7_skip:
+                dup5 dup2 lt eight_1_5_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap4
+                eight_1_5_skip:
+                dup8 dup5 lt eight_2_6_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap3 swap7 swap3
+                eight_2_6_skip:
+                dup6 dup2 lt eight_1_4_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap5
+                eight_1_4_skip:
+                dup8 dup4 lt eight_3_6_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap7 swap2
+                eight_3_6_skip:
+                dup6 dup5 lt eight_2_4_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap3 swap5 swap3
+                eight_2_4_skip:
+                dup5 dup4 lt eight_3_5_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap4 swap2
+                eight_3_5_skip:
+                dup6 dup4 lt eight_3_4_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap5 swap2
+                eight_3_4_skip:         // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap15 mstore           // v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 v1
+                swap11 mstore           // v5 v4 v7 v6 p7 p6 p5 p4 p3 v3 p1 v1
+                swap7 mstore            // v7 v6 p7 p6 p5 v5 p3 v3 p1 v1
+                swap3 mstore            // p7 v7 p5 v5 p3 v3 p1 v1
+                mstore
+                mstore
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

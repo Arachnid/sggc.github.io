@@ -1,0 +1,28 @@
+---
+layout: base
+---
+<div class="container">
+    <h1>All submissions by {{page.submitter|truncate:20}}</h1>
+    <div class="row">
+        <div class="col-lg-12">
+            {% assign allsubmissions=site.pages|where:"layout","submission"|where:"submitter",page.submitter|sort:"submitted" %}
+            {% for challenge in site.data.challenges %}
+                <h2>{{ challenge[1].title }}</h2>
+                <table class="table">
+                    <thead>
+                        <tr><th>Entry</th><th>Submitted</th><th>Category</th><th>Gas Used</th></tr>
+                    </thead>
+                    {% assign submissions=allsubmissions|where:"challenge",challenge[0] %}
+                    {% for submission in submissions %}
+                        <tr>
+                            <td><a href="{{submission.url}}">{{ submission.name | truncate:11 }}</a></td>
+                            <td>{{ submission.submitted|date:"%Y-%m-%d" }}</td>
+                            <td>{% if submission.wild %}Wild{% else %}Standard{% endif %}</td>
+                            <td>{{ submission.gas }}</tr>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endfor %}
+        </div>
+    </div>
+</div>

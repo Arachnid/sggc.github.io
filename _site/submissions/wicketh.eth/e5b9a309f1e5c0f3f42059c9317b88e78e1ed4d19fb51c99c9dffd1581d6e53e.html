@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission e5b9a309...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/brainfuck">BrainFuck interpreter</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/wicketh.eth/">wicketh.eth</a>
+        <tr><th>Submitted at</th><td>2018-49-31</td></tr>
+        <tr><th>Gas used</th><td>200369</td></tr>
+    </table>
+    <pre><code class="language-solidity">contract BrainFuck {
+    
+    function () external payable { assembly {
+        
+        // This canceles out the "mstore(0x40, 0x80)" that
+        // solc likes to inject. It even gets partially optimized.
+        mstore(0x40, 0x00)
+        
+        let source
+        let eof
+        let stack
+        let tp // Tape pointer
+        let ip // Input pointer
+        let op // Output pointer
+        let pp // Program pointer
+        
+        //
+        // Compiler
+        //
+        
+        // Create lookup table
+        // From high to low since we have overlaping writes
+        mstore(mul(0x5d, 16), close)
+        mstore(mul(0x5b, 16), open)
+        mstore(mul(0x3e, 16), right)
+        mstore(mul(0x3c, 16), left)
+        mstore(mul(0x2e, 16), output)
+        mstore(mul(0x2d, 16), decr)
+        mstore(mul(0x2c, 16), input)
+        mstore(mul(0x2b, 16), incr)
+
+        source := 0x45 // offset left 31 bytes
+        eof := add(calldataload(0x44), 0x45)
+        pp := 2080 // WARNING: Overlaps with lookup table for high ascii
+        stack := 0 // WARNING: Overlaps with lookup table
+                   // If stack gets very deep or source has a very low
+                   // character this will fail.
+        
+        for {} lt(source, eof) {} {
+            
+            let c := and(calldataload(source), 0xff)
+            let inst := and(mload(mul(c, 16)), 0xFFFF)
+            
+            if inst {
+            
+                mstore(pp, inst)
+                pp := add(pp, 32)
+                
+                if eq(inst, open) {
+                    pp := add(pp, 32)
+                    mstore(stack, pp)
+                    stack := add(stack, 32)
+                }
+                if eq(inst, close) {
+                    stack := sub(stack, 32)
+                    let back := mload(stack) 
+                    mstore(pp, back)
+                    pp := add(pp, 32)
+                    mstore(sub(back, 32), pp)
+                    mstore(stack, 0)
+                }
+            }
+            
+            source := add(source, 1)
+        }
+        mstore(pp, exit)
+        
+        // Clear lookup table
+        mstore(mul(0x3e, 16), 0)
+        mstore(mul(0x3c, 16), 0)
+        mstore(mul(0x2b, 16), 0)
+        mstore(mul(0x2d, 16), 0)
+        mstore(mul(0x2e, 16), 0)
+        mstore(mul(0x2c, 16), 0)
+        mstore(mul(0x5b, 16), 0)
+        mstore(mul(0x5d, 16), 0)
+
+        
+        //
+        // BrainFuck virtual machine in the Ethereum virtual machine
+        //
+        
+        // Tape is allocated 32...1055 in memory as bytes (use mstore8)
+        // Output is allocatd 1056...2079 in memory as bytes (use mstore8)
+        // Program is stored as 2080... as uint256 in direct threading
+        // Input is kept in calldata. Input pointer is offset by -31 so
+        // a byte can be read using and(calldataload(ip), 0xff)
+        
+    // reset:
+        tp := 32
+        ip := add(calldataload(36), 5) // offset left 31 bytes
+        op := 1056
+        pp := 2080
+        jump(mload(pp))
+        
+    right: // &gt;
+        tp := add(tp, 1)
+        pp := add(pp, 32)
+        jump(mload(pp))
+    
+    left: // &lt;
+        tp := sub(tp, 1)
+        pp := add(pp, 32)
+        jump(mload(pp))
+    
+    incr: // +
+        mstore8(tp, add(mload(sub(tp, 31)), 1))
+        pp := add(pp, 32)
+        jump(mload(pp))
+    
+    decr: // -
+        mstore8(tp, sub(mload(sub(tp, 31)), 1))
+        pp := add(pp, 32)
+        jump(mload(pp))
+    
+    output: // .
+        mstore8(op, mload(sub(tp, 31)))
+        op := add(op, 1)
+        pp := add(pp, 32)
+        jump(mload(pp))
+    
+    input: // ,
+        mstore8(tp, calldataload(ip))
+        ip := add(ip, 1)
+        pp := add(pp, 32)
+        jump(mload(pp))
+    
+    open: // [
+        jumpi(take, iszero(and(mload(sub(tp, 31)), 0xff))) 
+        pp := add(pp, 64)
+        jump(mload(pp))
+    
+    close: // ]
+        jumpi(take, and(mload(sub(tp, 31)), 0xff)) 
+        pp := add(pp, 64)
+        jump(mload(pp))
+    
+    take:
+        pp := mload(add(pp, 32))
+        jump(mload(pp))
+    
+    exit: // EOF
+        mstore(992, 32)
+        mstore(1024, sub(op, 1056))
+        return(992, and(sub(op, 961), not(0x1F)))
+    }}
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

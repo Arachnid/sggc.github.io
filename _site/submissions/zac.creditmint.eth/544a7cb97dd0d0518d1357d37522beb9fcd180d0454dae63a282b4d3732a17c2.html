@@ -1,0 +1,2047 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 544a7cb9...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/sort">Integer sorting</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a>
+        <tr><th>Submitted at</th><td>2018-19-30</td></tr>
+        <tr><th>Gas used</th><td>124447</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * Author: Zachary Williamson
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity ^0.4.23;
+
+contract Sort {
+    /**
+     * @dev Sorts a list of integers in ascending order.
+     *
+     * The input list may be of any length.
+     *
+     * @return The sorted list.
+     */
+
+    // It's a sorting algorithm!
+
+    // Technically this is a hybrid sort that uses quicksort with a 
+    // Hoare partition scheme for runs &gt; 16 and optimized network sorts for 
+    // shorter runs, although in reality this thing is closer to heresy than an actual algorithm.
+    // We use the 'gas' opcode as our source of randomness for our random pivot, which provides
+    // a fantastically cheap pseudorandom number generator. We also use a lookup table
+    // that translates run size into jump instructions for hardcoded network sorts.
+    // Combined together, the amount of gas in a transaction modifies the pivot choice
+    // which in turn affects partition sizes, which in turn modifies the control flow
+    // of the program via the lookup table, which in turn will modify the amount of gas remaining which
+    // in turn changes the pivot choice which... and so on. Essentially we've created a recursive
+    // feedback loop between the entropy in our 'random' number generator and the control
+    // flow of our program. Which is rather Malboge-esque, I feel.
+    // It's also probably why Remix cheerfully crashes whenever I try to debug a transaction! 
+
+    // I also test specifically for pre-sorted data and reverse-sorted data. Technically a bit
+    // cheeky because I'm not sure that would be optimal for general-case scenarios. But hey,
+    // it reduces the gas cost of the tests and this is code golf!
+    function sort(uint[]) external view returns(uint[]) {
+        assembly {
+            0x64 calldatasize gt has_data jumpi
+            0x20 0x00 mstore
+            0x24 calldataload 0x20 mstore
+            0x04 calldatasize sub 0x00 return
+            has_data:
+            0x01 0x01
+            0x64 0x44 calldataload
+            check_if_perfect_2_start:       // prev s forward reverse
+                dup2 calldataload           // currrent prev s
+                dup1 swap2                  // prev current current s
+                dup2 0x01 add dup2 lt       // (is forward?) prev current current s forward reverse
+                swap2                       // current prev (is forward?) current s forward reverse
+                0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff add
+                slt                          // (is reverse?) (is forward?) current s forward reverse
+                swap4 and                   // forward' current s (isreverse?) reverse
+                swap2 0x20 add              // s' current forward' (isreverse?) reverse
+                swap3 swap1                 // current (isreverse?) forward' s' reverse
+                swap4 and                   // reverse' forward' s' current
+                swap3 swap1 swap2           // s' current forward' reverse'
+                swap1                       // prev s forward reverse
+            0x104 dup3 lt check_if_perfect_2_start jumpi
+
+            pop pop
+            is_already_sorted jumpi
+            is_reverse_sorted jumpi
+            actually_do_something jump
+
+            is_already_sorted:
+                calldatasize 0x04 0x00 calldatacopy
+                0x04 calldatasize sub 0x00 return
+            is_reverse_sorted:
+                0x20 calldatasize sub // p
+                is_reverse_sorted_loop:
+                    dup1 calldataload msize mstore
+                    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0 add
+                    dup1 calldataload msize mstore
+                    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0 add
+                    dup1 calldataload msize mstore
+                    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0 add
+                    dup1 calldataload msize mstore
+                    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0 add
+                    dup1 calldataload msize mstore
+                    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0 add
+                    dup1 calldataload msize mstore
+                    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0 add
+                    dup1 calldataload msize mstore
+                    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0 add
+                    dup1 calldataload msize mstore
+                    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0 add
+                    0x44 dup2 sgt is_reverse_sorted_loop jumpi
+                0x24 calldataload 0x40 mstore
+                0x20 0x20 mstore
+                0x04 calldatasize sub 0x20 return
+
+            actually_do_something:
+            0x00
+            entropy_fiddler:
+            // so, the random pivot is dependant on the gas available
+            // when the pivot is calculated. So...let's tweak the gas params to get the best sort!
+            0x02 add
+            msize 0x00 mstore
+            0x4 dup2 lt entropy_fiddler jumpi
+            pop
+            mstore(0x00, nothing_to_sort)
+            mstore(0x20, sort_two)
+            mstore(0x40, sort_three)
+            mstore(0x60, sort_four)
+            mstore(0x80, sort_five)
+            mstore(0xa0, sort_six)
+            mstore(0xc0, sort_seven)
+            mstore(0xe0, sort_eight)
+            mstore(0x100, sort_nine)
+            mstore(0x120, sort_ten)
+            mstore(0x140, sort_eleven)
+            mstore(0x160, sort_twelve)
+            mstore(0x180, sort_thirteen)
+            mstore(0x1a0, sort_fourteen)
+            mstore(0x1c0, sort_fifteen)
+            mstore(0x1e0, sort_sixteen)
+            // we need to store a temporary in memory, so reserve index 0x200 for that
+            calldatasize 0x04 0x220 calldatacopy
+
+            // one run of recursion will add the indices of the next set of partition start/end points on the stack
+            // we start by adding 0 onto the stack, at the start of our routine we check whether the next stack item is 0 to
+            // evaluate whether to proceed.
+            0
+            0x260 0x40 msize sub // p_high p_low 0
+
+            asm_evaluate_stack:
+                0x1e0 dup3 dup3 sub gt asm_partition jumpi // this is where the program flow gets...a little hard to follow
+                dup2 swap1 sub mload jump // p_low
+            nothing_to_sort:
+                pop
+                dup1 asm_evaluate_stack jumpi
+            asm_finish_sort:
+            0x04 calldatasize sub 0x220 return
+
+            asm_partition:          // p_high p_low
+                // son of a... the optimizer replaces this with 0x1f NOT. Throw it onto the stack so we
+                // don't have the pay that cost in our inner loop
+                0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0
+                // stack state -1 p_high p_low
+
+                // well this is eminently sensible code that will cause no problems whatsoever...
+                // dup2 dup2 sub gas mod 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0 and dup3 add
+                gas 0x1e0 and dup4 add // well, I know the partition size is &gt;16, so we can pick a random value from 1-16 without any issues
+                mload               // p -1 p_high p_low
+
+                dup2 dup5 add       // i p -1 p_high p_low
+                dup4      // j i p p_high p_low
+                // asm_decrease_j jump
+                dup3 dup2 mload gt asm_decrease_j jumpi
+                swap1
+                0x20 add
+                dup3 dup2 mload lt asm_increase_i jumpi
+                swap1
+                dup1 dup3 lt asm_partition_swap jumpi
+
+                swap3 pop pop pop       // p' p_high p_low
+                dup1 0x20 add       // p'' p' p_high p_low
+                swap3 swap1         // p' p_low p_high p''
+
+            0x1e0 dup3 dup3 sub gt asm_partition jumpi
+            dup2 swap1 sub mload jump // p_low
+                asm_partition_swap:
+                                    // j i p p_high p_low
+                    dup1 mload      // vj j i p p_high p_low
+                    dup3 mload      // vi vj j i p p_high p_low
+                    dup3 mstore     // vj j i p p_high p_low
+                    dup3 mstore     // j i p p_high p_low -0x20
+
+                asm_decrease_j:
+                    // add -0x20 to save a swap op
+                    dup4 add  // j i p -1 p_high p_low
+                    dup3 dup2 mload gt asm_decrease_j jumpi
+                swap1               // i j p p_high p_low
+                asm_increase_i:
+                    0x20 add
+                    dup3 dup2 mload lt asm_increase_i jumpi
+                swap1
+                dup1 dup3 lt asm_partition_swap jumpi   // j i p -1 p_high p_low
+
+
+                swap3 pop pop pop       // p_high p_low p'
+                dup1 0x20 add       // p'' p' p_high p_low
+                swap3 swap1         // p' p_low p_high p''
+
+            0x1e0 dup3 dup3 sub gt asm_partition jumpi
+            dup2 swap1 sub mload jump // p_low
+
+            "Dear" "learned" "companions" "," "why" "is" "a" "raven" "like" "a" "writing" "desk" "?"// &lt;-- Program does not work without this.
+            msize calldataload gas caller callvalue
+// This is where the main routine (sort of?) ends. Below are jump destinations for hardcoded network sorts for 2 &lt;= n &lt;= 16
+// ###########################################################################
+
+            sort_two:
+                dup1 0x20 add           // p1 p0
+                dup1 mload
+                dup3 mload              // v0 v1 p1 p0
+                lt two_0_1_skip jumpi   // p1 p0
+                dup1 mload              // v1 p1 p0
+                dup3 mload              // v0 v1 p1 p0
+                swap3 mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+                two_0_1_skip:           // p1 p0
+                pop pop
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+            sort_three:             // v1 v0 v2 p2 p1 p0
+                dup1 0x20 add       // p1
+                dup2 0x40 add       // p2 p1 p0
+                dup1 mload          // v2 p2 p1 p0
+                dup4 mload          // v0 v2 p2 p1 p0
+                dup4 mload          // v1 v0 v2 p2 p1 p0
+
+                dup3 dup2 lt three_1_2_skip jumpi // v1 v0 v2 p2 p1 p0
+                swap2
+                three_1_2_skip:
+                dup3 dup3 lt three_0_2_skip jumpi // v1 v0 v2 p2 p1 p0
+                swap1 swap2 swap1
+                three_0_2_skip:
+                dup1 dup3 lt three_0_1_skip jumpi // v1 v0 v2 p2 p1 p0
+                swap1
+                three_0_1_skip: // v1 v0 v2 p2 p1 p0
+                swap5 mstore    // v2 p2 p1 v1
+                swap1 mstore    // p1 v1
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+            sort_four:              // v1 v0 v3 v2 p3 p2 p1 p0
+                dup1 0x20 add
+                dup2 0x40 add
+                dup3 0x60 add       // p3 p2 p1 p0
+                dup2 mload
+                dup2 mload
+                dup6 mload
+                dup6 mload
+
+                dup1 dup3 lt four_0_1_skip jumpi // v1 v0 v3 v2 p3 p2 p1 p0
+                swap1
+                four_0_1_skip:
+                dup3 dup5 lt four_2_3_skip jumpi // v1 v0 v3 v2 p3 p2 p1 p0
+                swap2 swap3 swap2
+                four_2_3_skip:
+                dup4 dup3 lt four_0_2_skip jumpi // v1 v0 v3 v2 p3 p2 p1 p0
+                swap1 swap3 swap1
+                four_0_2_skip:
+                dup3 dup2 lt four_1_3_skip jumpi // v1 v0 v3 v2 p3 p2 p1 p0
+                swap2
+                four_1_3_skip:
+                dup4 dup2 lt four_1_2_skip jumpi // v1 v0 v3 v2 p3 p2 p1 p0
+                swap3
+                four_1_2_skip:          // v1 v0 v3 v2 p3 p2 p1 p0
+                swap7 mstore            // v3 v2 p3 p2 p1 v1
+                swap3 mstore            // p3 v3 p1 v1
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+        
+            sort_five:              // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                dup1 0x20 add
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x80 add       // p4 p3 p2 p1 p0
+                dup1 mload          // v4 p4 p3 p2 p1 p0
+                dup4 mload
+                dup4 mload          // v3 v2 v4 p4 p3 p2 p1 p0
+                dup8 mload
+                dup8 mload          // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+
+                dup1 dup3 lt five_0_1_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap1
+                five_0_1_skip:
+                dup5 dup4 lt five_3_4_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap2 swap4 swap2
+                five_3_4_skip:
+                dup5 dup5 lt five_2_4_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap3 swap4 swap3
+                five_2_4_skip:
+                dup3 dup5 lt five_2_3_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap2 swap3 swap2
+                five_2_3_skip:
+                dup5 dup2 lt five_1_4_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap4
+                five_1_4_skip:
+                dup3 dup3 lt five_0_3_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap1 swap2 swap1
+                five_0_3_skip:
+                dup4 dup3 lt five_0_2_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap1 swap3 swap1
+                five_0_2_skip:
+                dup3 dup2 lt five_1_3_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap2
+                five_1_3_skip:
+                dup4 dup2 lt five_1_2_skip jumpi // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap3
+                five_1_2_skip:          // v1 v0 v3 v2 v4 p4 p3 p2 p1 p0
+                swap9 mstore            // v3 v2 v4 p4 p3 p2 p1 v1
+                swap5 mstore            // v4 p4 p3 v3 p1 v1
+                swap1 mstore            // p3 v3 p1 v1
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+                
+            sort_six:             // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                dup1 0x20 add
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x80 add
+                dup5 0xa0 add     // p5 p4 p3 p2 p1 p0
+                dup2 mload
+                dup2 mload
+                dup6 mload
+                dup6 mload
+                dup10 mload
+                dup10 mload         // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+
+                dup4 dup2 lt six_1_2_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap3
+                six_1_2_skip:
+                dup5 dup7 lt six_4_5_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap4 swap5 swap4
+                six_4_5_skip:
+                dup4 dup3 lt six_0_2_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap1 swap3 swap1
+                six_0_2_skip:
+                dup5 dup4 lt six_3_5_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap2 swap4 swap2
+                six_3_5_skip:
+                dup1 dup3 lt six_0_1_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap1
+                six_0_1_skip:
+                dup6 dup4 lt six_3_4_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap2 swap5 swap2
+                six_3_4_skip:
+                dup5 dup5 lt six_2_5_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap3 swap4 swap3
+                six_2_5_skip:
+                dup3 dup3 lt six_0_3_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap2 swap1 swap2
+                six_0_3_skip:
+                dup6 dup2 lt six_1_4_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap5
+                six_1_4_skip:
+                dup6 dup5 lt six_2_4_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap3 swap5 swap3
+                six_2_4_skip:
+                dup3 dup2 lt six_1_3_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap2
+                six_1_3_skip:
+                dup3 dup5 lt six_2_3_skip jumpi // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap2 swap3 swap2
+                six_2_3_skip:                    // v1 v0 v3 v2 v5 v4 p5 p4 p3 p2 p1 p0
+                swap11 mstore                    // v3 v2 v5 v4 p5 p4 p3 p2 p1 v1
+                swap7 mstore                     // v5 v4 p5 p4 p3 v3 p1 v1
+                swap3 mstore                     // p5 v5 p3 v3 p1 v1
+                mstore
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+            sort_seven:             // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                dup1 0x20 add
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x80 add
+                dup5 0xa0 add
+                dup6 0xc0 add       // p6 p5 p4 p3 p2 p1 p0
+                dup1 mload          // v6 p6 p5 p4 p3 p2 p1 p0
+                dup4 mload          // v4 v6 p6 p5 p4 p3 p2 p1 p0
+                dup4 mload          // v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                dup8 mload          // v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                dup8 mload          // v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                dup12 mload         // v0 v2 v3 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                dup12 mload         // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+
+                dup4 dup2 lt seven_1_2_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap3
+                seven_1_2_skip:
+                dup6 dup4 lt seven_3_4_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap5 swap2
+                seven_3_4_skip:
+                dup7 dup6 lt seven_5_6_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap4 swap6 swap4
+                seven_5_6_skip:
+                dup4 dup3 lt seven_0_2_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap1 swap3 swap1
+                seven_0_2_skip:
+                dup5 dup4 lt seven_3_5_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap4 swap2
+                seven_3_5_skip:
+                dup7 dup7 lt seven_4_6_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap5 swap6 swap5
+                seven_4_6_skip:
+                dup1 dup3 lt seven_0_1_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap1
+                seven_0_1_skip:
+                dup5 dup7 lt seven_4_5_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap4 swap5 swap4
+                seven_4_5_skip:
+                dup7 dup5 lt seven_2_6_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap3 swap6 swap3
+                seven_2_6_skip:
+                dup6 dup3 lt seven_0_4_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap5 swap1 swap5
+                seven_0_4_skip:
+                dup5 dup2 lt seven_1_5_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap4
+                seven_1_5_skip:
+                dup3 dup3 lt seven_0_3_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap1 swap2 swap1
+                seven_0_3_skip:
+                dup5 dup5 lt seven_2_5_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap3 swap4 swap3
+                seven_2_5_skip:
+                dup3 dup2 lt seven_1_3_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap2
+                seven_1_3_skip:
+                dup6 dup5 lt seven_2_4_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap3 swap5 swap3
+                seven_2_4_skip:
+                dup3 dup5 lt seven_2_3_skip jumpi // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap3 swap2
+                seven_2_3_skip:          // v1 v0 v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 p0
+                swap13 mstore           // v3 v2 v5 v4 v6 p6 p5 p4 p3 p2 p1 v1
+                swap9 mstore            // v5 v4 v6 p6 p5 p4 p3 v3 p1 v1
+                swap5 mstore            // v6 p6 p5 v5 p3 v3 p1 v1
+                swap1 mstore            // p5 v5 p3 v3 p1 v1
+                mstore
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+                    
+            sort_eight:
+                dup1 0x20 add
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x80 add
+                dup5 0xa0 add
+                dup6 0xc0 add
+                dup7 0xe0 add       // p7 p6 p5 p4 p3 p2 p1 p0
+                dup2 mload          // v6 p7 p6 p5 p4 p3 p2 p1 p0
+                dup2 mload          // v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                dup6 mload
+                dup6 mload          // v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                dup10 mload         // v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0 
+                dup10 mload         // v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                dup14 mload         // v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                dup14 mload         // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+
+                dup1 dup3 lt eight_0_1_skip jumpi
+                swap1
+                eight_0_1_skip:
+                dup3 dup5 lt eight_2_3_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap3 swap2
+                eight_2_3_skip:
+                dup5 dup7 lt eight_4_5_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap4 swap5 swap4
+                eight_4_5_skip:
+                dup7 dup9 lt eight_6_7_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap6 swap7 swap6
+                eight_6_7_skip:
+                dup4 dup3 lt eight_0_2_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap1 swap3 swap1
+                eight_0_2_skip:
+                dup3 dup2 lt eight_1_3_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap2
+                eight_1_3_skip:
+                dup8 dup7 lt eight_4_6_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap5 swap7 swap5
+                eight_4_6_skip:
+                dup7 dup6 lt eight_5_7_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap4 swap6 swap4
+                eight_5_7_skip:
+                dup4 dup2 lt eight_1_2_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap3
+                eight_1_2_skip:
+                dup8 dup6 lt eight_5_6_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap4 swap7 swap4
+                eight_5_6_skip:
+                dup6 dup3 lt eight_0_4_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap1 swap5 swap1
+                eight_0_4_skip:
+                dup7 dup4 lt eight_3_7_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap6 swap2
+                eight_3_7_skip:
+                dup5 dup2 lt eight_1_5_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap4
+                eight_1_5_skip:
+                dup8 dup5 lt eight_2_6_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap3 swap7 swap3
+                eight_2_6_skip:
+                dup6 dup2 lt eight_1_4_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap5
+                eight_1_4_skip:
+                dup8 dup4 lt eight_3_6_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap7 swap2
+                eight_3_6_skip:
+                dup6 dup5 lt eight_2_4_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap3 swap5 swap3
+                eight_2_4_skip:
+                dup5 dup4 lt eight_3_5_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap4 swap2
+                eight_3_5_skip:
+                dup6 dup4 lt eight_3_4_skip jumpi // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap2 swap5 swap2
+                eight_3_4_skip:         // v1 v0 v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 p0
+                swap15 mstore           // v3 v2 v5 v4 v7 v6 p7 p6 p5 p4 p3 p2 p1 v1
+                swap11 mstore           // v5 v4 v7 v6 p7 p6 p5 p4 p3 v3 p1 v1
+                swap7 mstore            // v7 v6 p7 p6 p5 v5 p3 v3 p1 v1
+                swap3 mstore            // p7 v7 p5 v5 p3 v3 p1 v1
+                mstore
+                mstore
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+            sort_nine:
+                dup1 0x20 add       // p1 p0
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x100 add      // p8 p3 p2 p1 p0
+                dup5 0xe0 add 
+                dup6 0xc0 add
+                dup7 0xa0 add
+                dup8 0x80 add       // p4 p5 p6 p7 p8 p3 p2 p1 p0
+                dup9 mload
+                dup9 mload
+                dup9 mload
+                dup9 mload
+                dup9 mload
+                dup9 mload
+                dup9 mload
+                dup9 mload
+                dup9 mload          // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+
+                dup8 dup10 lt nine_0_1_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap7 swap8 swap7
+                nine_0_1_skip:
+                dup1 dup7 lt nine_3_4_skip jumpi
+                swap5
+                nine_3_4_skip:
+                dup4 dup4 lt nine_6_7_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap2 swap3 swap2
+                nine_6_7_skip:
+                dup7 dup9 lt nine_1_2_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap6 swap7 swap6
+                nine_1_2_skip:
+                dup2 dup2 lt nine_4_5_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap1
+                nine_4_5_skip:
+                dup5 dup5 lt nine_7_8_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap3 swap4 swap3
+                nine_7_8_skip:
+                dup8 dup10 lt nine_0_1_skip_2 jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap7 swap8 swap7
+                nine_0_1_skip_2:
+                dup1 dup7 lt nine_3_4_skip_2 jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap5
+                nine_3_4_skip_2:
+                dup4 dup4 lt nine_6_7_skip_2 jumpi
+                swap2 swap3 swap2
+                nine_6_7_skip_2:
+                dup2 dup8 lt nine_2_5_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap1 swap6 swap1
+                nine_2_5_skip:
+                dup6 dup10 lt nine_0_3_skip jumpi   // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap5 swap8 swap5
+                nine_0_3_skip:
+                dup1 dup9 lt nine_1_4_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap7
+                nine_1_4_skip:
+                dup5 dup3 lt nine_5_8_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap1 swap4 swap1
+                nine_5_8_skip:
+                dup3 dup7 lt nine_3_6_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap5 swap2 swap5
+                nine_3_6_skip:
+                dup4 dup2 lt nine_4_7_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap3
+                nine_4_7_skip:
+                dup2 dup8 lt nine_2_5_skip_2 jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap1 swap6 swap1
+                nine_2_5_skip_2:
+                dup6 dup10 lt nine_0_3_skip_2 jumpi  // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap5 swap8 swap5
+                nine_0_3_skip_2:
+                dup1 dup9 lt nine_1_4_skip_2 jumpi
+                swap7
+                nine_1_4_skip_2:
+                dup4 dup3 lt nine_5_7_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap1 swap3 swap1
+                nine_5_7_skip:
+                dup3 dup8 lt nine_2_6_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap2 swap6 swap2
+                nine_2_6_skip:
+                dup6 dup9 lt nine_1_3_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap7 swap5 swap7
+                nine_1_3_skip:
+                dup3 dup2 lt nine_4_6_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap2
+                nine_4_6_skip:
+                dup1 dup8 lt nine_2_4_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap6
+                nine_2_4_skip:
+                dup3 dup3 lt nine_5_6_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap1 swap2 swap1
+                nine_5_6_skip:
+                dup6 dup8 lt nine_2_3_skip jumpi    // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap5 swap6 swap5
+                nine_2_3_skip:      // v4 v5 v6 v7 v8 v3 v2 v1 v0 p4 p5 p6 p7 p8 p3 p2 p1 p0
+                swap10 mstore       // v6 v7 v8 v3 v2 v1 v0 p4 v4 p6 p7 p8 p3 p2 p1 p0
+                swap10 mstore       // v8 v3 v2 v1 v0 p4 v4 p6 v6 p8 p3 p2 p1 p0
+                swap10 mstore       // v2 v1 v0 p4 v4 p6 v6 p8 v8 p2 p1 p0
+                swap10 mstore       // v0 p4 v4 p6 v6 p8 v8 p2 v2 p0
+                dup10 mstore        // oops
+                mstore
+                mstore
+                mstore
+                mstore
+                pop // oops x2
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+            sort_ten:
+                dup1 0x20 add       // p1 p0
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x120 add      // p9 p3 p2 p1 p0
+                dup5 0x100 add      // p8 p3 p2 p1 p0
+                dup6 0xe0 add 
+                dup7 0xc0 add
+                dup8 0xa0 add
+                dup9 0x80 add       // p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                dup10 mload
+                dup10 mload
+                dup10 mload
+                dup10 mload
+                dup10 mload
+                dup10 mload
+                dup10 mload
+                dup10 mload
+                dup10 mload
+                dup10 mload          // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+
+                dup6 dup2 lt ten_4_9_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap5
+                ten_4_9_skip:
+                dup5 dup8 lt ten_3_8_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap4 swap6 swap4
+                ten_3_8_skip:
+                dup4 dup9 lt ten_2_7_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap3 swap7 swap3
+                ten_2_7_skip:
+                dup3 dup10 lt ten_1_6_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap2 swap8 swap2
+                ten_1_6_skip:
+                dup2 dup11 lt ten_0_5_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap1 swap9 swap1
+                ten_0_5_skip:
+                dup1 dup10 lt ten_1_4_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap8
+                ten_1_4_skip:
+                dup6 dup4 lt ten_6_9_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap2 swap5 swap2
+                ten_6_9_skip:
+                dup7 dup11 lt ten_0_3_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap9 swap6 swap9
+                ten_0_3_skip:
+                dup5 dup3 lt ten_5_8_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap4 swap1 swap4
+                ten_5_8_skip:
+                dup8 dup11 lt ten_0_2_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap9 swap7 swap9
+                ten_0_2_skip:
+                dup3 dup8 lt ten_3_6_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap6 swap2 swap6
+                ten_3_6_skip:
+                dup6 dup5 lt ten_7_9_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap3 swap5 swap3
+                ten_7_9_skip:
+                dup9 dup11 lt ten_0_1_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap8 swap9 swap8
+                ten_0_1_skip:
+                dup1 dup9 lt ten_2_4_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap7
+                ten_2_4_skip:
+                dup4 dup3 lt ten_5_7_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap1 swap3 swap1
+                ten_5_7_skip:
+                dup6 dup6 lt ten_8_9_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap4 swap5 swap4
+                ten_8_9_skip:
+                dup8 dup10 lt ten_1_2_skip jumpi    // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap8 swap7 swap8
+                ten_1_2_skip:
+                dup3 dup2 lt ten_4_6_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap2
+                ten_4_6_skip:
+                dup5 dup5 lt ten_7_8_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap4 swap3 swap4
+                ten_7_8_skip:
+                dup2 dup8 lt ten_3_5_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap6 swap1 swap6
+                ten_3_5_skip:
+                dup2 dup9 lt ten_2_5_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap7 swap1 swap7
+                ten_2_5_skip:
+                dup5 dup4 lt ten_6_8_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap2 swap4 swap2
+                ten_6_8_skip:
+                dup7 dup10 lt ten_1_3_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap6 swap8 swap6
+                ten_1_3_skip:
+                dup4 dup2 lt ten_4_7_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap3
+                ten_4_7_skip:
+                dup7 dup9 lt ten_2_3_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap6 swap7 swap6
+                ten_2_3_skip:
+                dup4 dup4 lt ten_6_7_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap2 swap3 swap2
+                ten_6_7_skip:
+                dup1 dup8 lt ten_3_4_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap6
+                ten_3_4_skip:
+                dup3 dup3 lt ten_5_6_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap1 swap2 swap1
+                ten_5_6_skip:
+                dup2 dup2 lt ten_4_5_skip jumpi     // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap1
+                ten_4_5_skip:                       // v4 v5 v6 v7 v8 v9 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p3 p2 p1 p0
+                swap11 mstore                       // v6 v7 v8 v9 v3 v2 v1 v0 p4 v4 p6 p7 p8 p9 p3 p2 p1 p0
+                swap11 mstore
+                swap11 mstore
+                swap11 mstore
+                swap11 mstore                       // p4 v4 p6 v6 p8 v8 p3 v3 p1 v1
+                mstore
+                mstore
+                mstore
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+            sort_eleven:
+                dup1 0x20 add       // p1 p0
+                dup2 0x60 add       // p3 p1 p0
+                dup3 0x140 add      // p10 p3 p1 p0
+                dup4 0x120 add      // p9 p10 p3 p1 p0
+                dup5 0x100 add      // p8 p9 p10 p3 p1 p0
+                dup6 0xe0 add 
+                dup7 0xc0 add
+                dup8 0xa0 add
+                dup9 0x80 add       // p4 p5 p6 p7 p8 p9 p10 p3 p1 p0
+                0x40 dup2 sub        // p2 p4 p5 p6 p7 p8 p9 p10 p3 p1 p0
+                dup1 mload           // v2 p2 p4 p5 p6 p7 p8 p9 p10 p3 p1 p0
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload         //      v4 v5 v6 v7 v8 v9 v10 v3 v1 v0 v2 p2 p4 p5 p6 p7 p8 p9 p10 p3 p1 p0
+                                    // s:   0   1  2  3  4  5  6  7  8  9  10
+                                    // d:   1   2  3  4  5  6  7  8  9 10  11
+                dup9 dup11 lt eleven_0_1_skip jumpi
+                swap8 swap9 swap8
+                eleven_0_1_skip:
+                dup8 dup12 lt eleven_2_3_skip jumpi
+                swap10 swap7 swap10
+                eleven_2_3_skip:
+                dup2 dup2 lt eleven_4_5_skip jumpi
+                swap1
+                eleven_4_5_skip:
+                dup4 dup4 lt eleven_6_7_skip jumpi  //      v4 v5 v6 v7 v8 v9 v10 v3 v1 v0 v2 p2 p4 p5 p6 p7 p8 p9 p10 p3 p1 p0
+                swap2 swap3 swap2                   // s:   0   1  2  3  4  5  6  7  8  9  10
+                eleven_6_7_skip:                    // d:   1   2  3  4  5  6  7  8  9 10  11
+                dup6 dup6 lt eleven_8_9_skip jumpi
+                swap4 swap5 swap4
+                eleven_8_9_skip:
+                dup8 dup10 lt eleven_1_3_skip jumpi
+                swap8 swap7 swap8
+                eleven_1_3_skip:
+                dup4 dup3 lt eleven_5_7_skip jumpi
+                swap1 swap3 swap1
+                eleven_5_7_skip:
+                dup11 dup11 lt eleven_0_2_skip jumpi
+                swap9 swap10 swap9
+                eleven_0_2_skip:
+                dup3 dup2 lt eleven_4_6_skip jumpi
+                swap2
+                eleven_4_6_skip:
+                dup7 dup6 lt eleven_8_10_skip jumpi
+                swap6 swap4 swap6
+                eleven_8_10_skip:
+                dup11 dup10 lt eleven_1_2_skip jumpi  //      v4 v5 v6 v7 v8 v9 v10 v3 v1 v0 v2 p2 p4 p5 p6 p7 p8 p9 p10 p3 p1 p0
+                swap8 swap10 swap8                    // s:   0   1  2  3  4  5  6  7  8  9  10
+                eleven_1_2_skip:                      // d:   1   2  3  4  5  6  7  8  9 10  11
+                dup3 dup3 lt eleven_5_6_skip jumpi
+                swap1 swap2 swap1
+                eleven_5_6_skip:
+                dup7 dup7 lt eleven_9_10_skip jumpi
+                swap5 swap6 swap5
+                eleven_9_10_skip:
+                dup1 dup11 lt eleven_0_4_skip jumpi
+                swap9
+                eleven_0_4_skip:
+                dup4 dup9 lt eleven_3_7_skip jumpi
+                swap3 swap7 swap3
+                eleven_3_7_skip:
+                dup2 dup10 lt eleven_1_5_skip jumpi
+                swap1 swap8 swap1
+                eleven_1_5_skip:
+                dup7 dup4 lt eleven_6_10_skip jumpi
+                swap6 swap2 swap6
+                eleven_6_10_skip:
+                dup5 dup2 lt eleven_4_8_skip jumpi
+                swap4
+                eleven_4_8_skip:
+                dup6 dup3 lt eleven_5_9_skip jumpi
+                swap1 swap5 swap1
+                eleven_5_9_skip:
+                dup3 dup12 lt eleven_2_6_skip jumpi
+                swap2 swap10 swap2
+                eleven_2_6_skip:
+                dup1 dup11 lt eleven_0_4_skip_2 jumpi
+                swap9
+                eleven_0_4_skip_2:
+                dup5 dup9 lt eleven_3_8_skip jumpi    //      v4 v5 v6 v7 v8 v9 v10 v3 v1 v0 v2 p2 p4 p5 p6 p7 p8 p9 p10 p3 p1 p0
+                swap4 swap7 swap4                     // s:   0   1  2  3  4  5  6  7  8  9  10
+                eleven_3_8_skip:                      // d:   1   2  3  4  5  6  7  8  9 10  11
+                dup2 dup10 lt eleven_1_5_skip_2 jumpi
+                swap1 swap8 swap1
+                eleven_1_5_skip_2:
+                dup7 dup4 lt eleven_6_10_skip_2 jumpi
+                swap6 swap2 swap6
+                eleven_6_10_skip_2:
+                dup8 dup12 lt eleven_2_3_skip_2 jumpi
+                swap10 swap7 swap10
+                eleven_2_3_skip_2:
+                dup6 dup6 lt eleven_8_9_skip_2 jumpi
+                swap4 swap5 swap4
+                eleven_8_9_skip_2:
+                dup1 dup10 lt eleven_1_4_skip jumpi    //      v4 v5 v6 v7 v8 v9 v10 v3 v1 v0 v2 p2 p4 p5 p6 p7 p8 p9 p10 p3 p1 p0
+                swap8                                  // s:   0   1  2  3  4  5  6  7  8  9  10
+                eleven_1_4_skip:                       // d:   1   2  3  4  5  6  7  8  9 10  11
+                dup7 dup5 lt eleven_7_10_skip jumpi
+                swap6 swap3 swap6
+                eleven_7_10_skip:
+                dup2 dup9 lt eleven_3_5_skip jumpi
+                swap1 swap7 swap1
+                eleven_3_5_skip:
+                dup5 dup4 lt eleven_6_8_skip jumpi
+                swap2 swap4 swap2
+                eleven_6_8_skip:
+                dup1 dup12 lt eleven_2_4_skip jumpi
+                swap10
+                eleven_2_4_skip:
+                dup6 dup5 lt eleven_7_9_skip jumpi
+                swap3 swap5 swap3
+                eleven_7_9_skip:
+                dup3 dup3 lt eleven_5_6_skip_2 jumpi
+                swap1 swap2 swap1
+                eleven_5_6_skip_2:
+                dup1 dup9 lt eleven_3_4_skip jumpi
+                swap7
+                eleven_3_4_skip:
+                dup5 dup5 lt eleven_7_8_skip jumpi
+                swap3 swap4 swap3
+                eleven_7_8_skip:     //      v4 v5 v6 v7 v8 v9 v10 v3 v1 v0 v2 p2 p4 p5 p6 p7 p8 p9 p10 p3 p1 p0
+                swap13 mstore        //      v6 v7 v8 v9 v10 v3 v1 v0 v2 p2 p4 v4 p6 p7 p8 p9 p10 p3 p1 p0
+                swap13 mstore
+                swap13 mstore
+                swap13 mstore
+                swap13 mstore        //      v2 p2 p4 v4 p6 v6 p8 v8 p10 v10 p1 v1
+                swap1 mstore         // p4 v4 p6 v6 p8 v8 p10 v10 p1 v1
+                mstore
+                mstore
+                mstore
+                mstore
+                mstore
+      
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+            sort_twelve:
+                dup1 0x20 add       // p1 p0
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x160 add      // p11 p3 p2 p1 p0
+                dup5 0x140 add      // p10 11 p3 p2 p1 p0
+                dup6 0x120 add 
+                dup7 0x100 add
+                dup8 0xe0 add
+                dup9 0xc0 add
+                dup10 0xa0 add
+                dup11 0x80 add      // p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload
+                dup12 mload          //    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                                     // s: 0  1  2  3  4  5  6   7   8  9  10 11
+                                     // d: 1  2  3  4  5  6  7   8   9  10 11 12
+
+                dup11 dup13 lt twelve_0_1_skip jumpi
+                swap10 swap11 swap10
+                twelve_0_1_skip:
+                dup9 dup11 lt twelve_2_3_skip jumpi
+                swap8 swap9 swap8
+                twelve_2_3_skip:
+                dup2 dup2 lt twelve_4_5_skip jumpi
+                swap1
+                twelve_4_5_skip:
+                dup4 dup4 lt twelve_6_7_skip jumpi
+                swap2 swap3 swap2
+                twelve_6_7_skip:
+                dup6 dup6 lt twelve_8_9_skip jumpi
+                swap4 swap5 swap4
+                twelve_8_9_skip:
+                dup8 dup8 lt twelve_10_11_skip jumpi
+                swap6 swap7 swap6
+                twelve_10_11_skip:
+                dup9 dup12 lt twelve_1_3_skip jumpi
+                swap8 swap10 swap8
+                twelve_1_3_skip:
+                dup4 dup3 lt twelve_5_7_skip jumpi
+                swap1 swap3 swap1
+                twelve_5_7_skip:
+                dup8 dup7 lt twelve_9_11_skip jumpi //    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap5 swap7 swap5                   // s: 0  1  2  3  4  5  6   7   8  9  10 11
+                twelve_9_11_skip:                   // d: 1  2  3  4  5  6  7   8   9  10 11 12
+                dup10 dup13 lt twelve_0_2_skip jumpi
+                swap9 swap11 swap9
+                twelve_0_2_skip:
+                dup3 dup2 lt twelve_4_6_skip jumpi
+                swap2
+                twelve_4_6_skip:
+                dup7 dup6 lt twelve_8_10_skip jumpi
+                swap4 swap6 swap4
+                twelve_8_10_skip:
+                dup10 dup12 lt twelve_1_2_skip jumpi
+                swap9 swap10 swap9
+                twelve_1_2_skip:
+                dup3 dup3 lt twelve_5_6_skip jumpi
+                swap1 swap2 swap1
+                twelve_5_6_skip:
+                dup7 dup7 lt twelve_9_10_skip jumpi
+                swap5 swap6 swap5
+                twelve_9_10_skip:
+                dup1 dup13 lt twelve_0_4_skip jumpi //    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap11                              // s: 0  1  2  3  4  5  6   7   8  9  10 11
+                twelve_0_4_skip:                    // d: 1  2  3  4  5  6  7   8   9  10 11 12
+                dup8 dup5 lt twelve_7_11_skip jumpi
+                swap7 swap3 swap7
+                twelve_7_11_skip:
+                dup2 dup12 lt twelve_1_5_skip jumpi
+                swap1 swap10 swap1
+                twelve_1_5_skip:
+                dup7 dup4 lt twelve_6_10_skip jumpi
+                swap2 swap6 swap2
+                twelve_6_10_skip:
+                dup4 dup10 lt twelve_3_7_skip jumpi
+                swap3 swap8 swap3
+                twelve_3_7_skip:
+                dup5 dup2 lt twelve_4_8_skip jumpi
+                swap4
+                twelve_4_8_skip:
+                dup6 dup3 lt twelve_5_9_skip jumpi
+                swap1 swap5 swap1
+                twelve_5_9_skip:
+                dup3 dup11 lt twelve_2_6_skip jumpi
+                swap2 swap9 swap2
+                twelve_2_6_skip:
+                dup1 dup13 lt twelve_0_4_skip_2 jumpi   //    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap11                                  // s: 0  1  2  3  4  5  6   7   8  9  10 11
+                twelve_0_4_skip_2:                      // d: 1  2  3  4  5  6  7   8   9  10 11 12
+                dup8 dup5 lt twelve_7_11_skip_2 jumpi
+                swap7 swap3 swap7
+                twelve_7_11_skip_2:
+                dup5 dup10 lt twelve_3_8_skip jumpi
+                swap4 swap8 swap4
+                twelve_3_8_skip:
+                dup2 dup12 lt twelve_1_5_skip_2 jumpi
+                swap1 swap10 swap1
+                twelve_1_5_skip_2:
+                dup7 dup4 lt twelve_6_10_skip_2 jumpi
+                swap2 swap6 swap2
+                twelve_6_10_skip_2:
+                dup9 dup11 lt twelve_2_3_skip_2 jumpi
+                swap8 swap9 swap8
+                twelve_2_3_skip_2:
+                dup6 dup6 lt twelve_8_9_skip_2 jumpi
+                swap4 swap5 swap4
+                twelve_8_9_skip_2:
+                dup1 dup12 lt twelve_1_4_skip jumpi
+                swap10
+                twelve_1_4_skip:
+                dup7 dup5 lt twelve_7_10_skip jumpi
+                swap3 swap6 swap3
+                twelve_7_10_skip:
+                dup2 dup10 lt twelve_3_5_skip jumpi
+                swap1 swap8 swap1
+                twelve_3_5_skip:
+                dup5 dup4 lt twelve_6_8_skip jumpi
+                swap2 swap4 swap2
+                twelve_6_8_skip:
+                dup1 dup11 lt twelve_2_4_skip jumpi
+                swap9
+                twelve_2_4_skip:
+                dup6 dup5 lt twelve_7_9_skip jumpi
+                swap3 swap5 swap3
+                twelve_7_9_skip:
+                dup3 dup3 lt twelve_5_6_skip_2 jumpi
+                swap1 swap2 swap1
+                twelve_5_6_skip_2:
+                dup1 dup10 lt twelve_3_4_skip jumpi
+                swap8
+                twelve_3_4_skip:
+                dup5 dup5 lt twelve_7_8_skip jumpi
+                swap3 swap4 swap3
+                twelve_7_8_skip:            //    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+
+                swap13 mstore
+                swap13 mstore
+                swap13 mstore
+                swap13 mstore
+                swap13 mstore
+                swap13 mstore
+                mstore
+                mstore
+                mstore
+                mstore
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+            sort_thirteen:
+                dup1 0x20 add       // p1 p0
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x160 add      // p11 p3 p2 p1 p0
+                dup5 0x140 add      // p10 11 p3 p2 p1 p0
+                dup6 0x120 add 
+                dup7 0x100 add
+                dup8 0xe0 add
+                dup9 0xc0 add
+                dup10 0xa0 add
+                dup11 0x80 add      // p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                dup12 0x180 add     // p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                dup1 mload          // v12 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                dup14 mload
+                dup14 mload
+                dup14 mload
+                dup14 mload
+                dup14 mload
+                dup14 mload
+                dup14 mload
+                dup14 mload
+                dup14 mload
+                dup14 mload
+                dup14 mload
+                dup14 mload          //    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v12 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                                     // s: 0  1  2  3  4  5  6   7   8   9 10 11  12
+                                     // d: 1  2  3  4  5  6  7   8   9  10 11 12  13
+                // 1 7
+                dup4 dup12 lt thirteen_1_7_skip jumpi
+                swap3 swap10 swap3
+                thirteen_1_7_skip:
+                //
+                dup8 dup7 lt thirteen_9_11_skip jumpi
+                swap5 swap7 swap5
+                thirteen_9_11_skip:
+                dup1 dup10 lt thirteen_3_4_skip jumpi
+                swap8
+                thirteen_3_4_skip:
+                // 5 8
+                dup5 dup3 lt thirteen_5_8_skip jumpi
+                swap1 swap4 swap1
+                thirteen_5_8_skip:
+                //
+                // 0 12
+                dup13 dup13 lt thirteen_0_12_skip jumpi
+                swap12 swap11 swap12
+                thirteen_0_12_skip:
+                //
+                dup3 dup11 lt thirteen_2_6_skip jumpi
+                swap2 swap9 swap2
+                thirteen_2_6_skip:
+                dup11 dup13 lt thirteen_0_1_skip jumpi
+                swap10 swap11 swap10
+                thirteen_0_1_skip:
+                dup9 dup11 lt thirteen_2_3_skip jumpi
+                swap8 swap9 swap8
+                thirteen_2_3_skip:
+                dup3 dup2 lt thirteen_4_6_skip jumpi
+                swap2
+                thirteen_4_6_skip:
+                // 8 11
+                dup8 dup6 lt thirteen_8_11_skip jumpi
+                swap4 swap7 swap4
+                thirteen_8_11_skip:
+                //
+                // 7 12
+                dup13 dup5 lt thirteen_7_12_skip jumpi
+                swap3 swap12 swap3
+                thirteen_7_12_skip:
+                //
+                dup6 dup3 lt thirteen_5_9_skip jumpi
+                swap1 swap5 swap1
+                thirteen_5_9_skip:
+                dup10 dup13 lt thirteen_0_2_skip jumpi
+                swap9 swap11 swap9
+                thirteen_0_2_skip:
+                dup4 dup10 lt thirteen_3_7_skip jumpi
+                swap3 swap8 swap3
+                thirteen_3_7_skip:
+                dup8 dup8 lt thirteen_10_11_skip jumpi
+                swap6 swap7 swap6
+                thirteen_10_11_skip:
+                dup1 dup12 lt thirteen_1_4_skip jumpi  //    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v12 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap10                                 // s: 0  1  2  3  4  5  6   7   8   9 10 11  12
+                thirteen_1_4_skip:                     // d: 1  2  3  4  5  6  7   8   9  10 11 12  13
+                // 6 12
+                dup13 dup4 lt thirteen_6_12_skip jumpi
+                swap12 swap2 swap12
+                thirteen_6_12_skip:
+                //
+                dup5 dup5 lt thirteen_7_8_skip jumpi
+                swap3 swap4 swap3
+                thirteen_7_8_skip:
+                // 11 12
+                dup13 dup9 lt thirteen_11_12_skip jumpi
+                swap12 swap7 swap12
+                thirteen_11_12_skip:
+                //
+                // 4 9
+                dup6 dup2 lt thirteen_4_9_skip jumpi
+                swap5
+                thirteen_4_9_skip:
+                //
+                dup7 dup4 lt thirteen_6_10_skip jumpi
+                swap2 swap6 swap2
+                thirteen_6_10_skip:
+                dup1 dup10 lt thirteen_3_4_skip_2 jumpi
+                swap8
+                thirteen_3_4_skip_2:
+                dup3 dup3 lt thirteen_5_6_skip jumpi
+                swap1 swap2 swap1
+                thirteen_5_6_skip:
+                dup6 dup6 lt thirteen_8_9_skip jumpi
+                swap4 swap5 swap4
+                thirteen_8_9_skip:
+                dup8 dup8 lt thirteen_10_11_skip_2 jumpi
+                swap6 swap7 swap6
+                thirteen_10_11_skip_2:
+                // 1 7 (2)
+                dup4 dup12 lt thirteen_1_7_skip_2 jumpi
+                swap3 swap10 swap3
+                thirteen_1_7_skip_2:
+                //
+                dup3 dup11 lt thirteen_2_6_skip_2 jumpi
+                swap2 swap9 swap2
+                thirteen_2_6_skip_2:
+                dup8 dup7 lt thirteen_9_11_skip_2 jumpi
+                swap5 swap7 swap5
+                thirteen_9_11_skip_2:
+                dup9 dup12 lt thirteen_1_3_skip jumpi  //    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v12 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap8 swap10 swap8                     // s: 0  1  2  3  4  5  6   7   8   9 10 11  12
+                thirteen_1_3_skip:                     // d: 1  2  3  4  5  6  7   8   9  10 11 12  13
+                // 4 7
+                dup4 dup2 lt thirteen_4_7_skip jumpi
+                swap3
+                thirteen_4_7_skip:
+                //
+                dup7 dup6 lt thirteen_8_10_skip jumpi
+                swap4 swap6 swap4
+                thirteen_8_10_skip:
+                // 0 5
+                dup2 dup13 lt thirteen_0_5_skip jumpi
+                swap1 swap11 swap1
+                thirteen_0_5_skip:
+                //
+                // 2 5
+                dup2 dup11 lt thirteen_2_5_skip jumpi
+                swap1 swap9 swap1
+                thirteen_2_5_skip:
+                //
+                dup5 dup4 lt thirteen_6_8_skip jumpi
+                swap2 swap4 swap2
+                thirteen_6_8_skip:
+                dup7 dup7 lt thirteen_9_10_skip jumpi
+                swap5 swap6 swap5
+                thirteen_9_10_skip:
+                dup10 dup12 lt thirteen_1_2_skip jumpi
+                swap9 swap10 swap9
+                thirteen_1_2_skip:
+                dup2 dup10 lt thirteen_3_5_skip jumpi
+                swap1 swap8 swap1
+                thirteen_3_5_skip:
+                dup5 dup5 lt thirteen_7_8_skip_2 jumpi
+                swap3 swap4 swap3
+                thirteen_7_8_skip_2:
+                dup3 dup2 lt thirteen_4_6_skip_2 jumpi
+                swap2
+                thirteen_4_6_skip_2:
+                // 2 3
+                dup9 dup11 lt thirteen_2_3_skip_2 jumpi
+                swap8 swap9 swap8
+                thirteen_2_3_skip_2:
+                //
+                dup2 dup2 lt thirteen_4_5_skip jumpi
+                swap1
+                thirteen_4_5_skip:
+                dup4 dup4 lt thirteen_6_7_skip jumpi
+                swap2 swap3 swap2
+                thirteen_6_7_skip:
+                dup6 dup6 lt thirteen_8_9_skip_2 jumpi
+                swap4 swap5 swap4
+                thirteen_8_9_skip_2:
+                dup1 dup10 lt thirteen_3_4_skip_3 jumpi
+                swap8
+                thirteen_3_4_skip_3:
+                dup3 dup3 lt thirteen_5_6_skip_2 jumpi
+                swap1 swap2 swap1
+                thirteen_5_6_skip_2:        //    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v12 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+
+                swap15 mstore               //    v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v12 p12 p4 v4 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap15 mstore
+                swap15 mstore
+                swap15 mstore
+                swap15 mstore
+                swap15 mstore               //    v12 p12 p4 v4 p6 v6 p8 v8 p10 v10 p3 v3 p1 v1
+                swap1 mstore
+                mstore
+                mstore
+                mstore
+                mstore
+                mstore
+                mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+            sort_fourteen:
+                dup1 0x20 add       // p1 p0
+                dup2 0x40 add
+                dup3 0x60 add
+                dup4 0x160 add      // p11 p3 p2 p1 p0
+                dup5 0x140 add      // p10 11 p3 p2 p1 p0
+                dup6 0x120 add 
+                dup7 0x100 add
+                dup8 0xe0 add
+                dup9 0xc0 add
+                dup10 0xa0 add
+                dup11 0x80 add      // p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                dup12 0x180 add
+                dup13 0x1a0 add     // p13 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                dup2 mload
+                dup2 mload          // v13 v12 p13 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                dup16 mload
+                dup16 mload
+                dup16 mload
+                dup16 mload
+                dup16 mload
+                dup16 mload
+                dup16 mload
+                dup16 mload
+                dup16 mload
+                dup16 mload
+                dup16 mload
+                dup16 mload          //    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v13 v12 p13 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                                     // s: 0  1  2  3  4  5  6   7   8  9  10 11 12  13
+                                     // d: 1  2  3  4  5  6  7   8   9 10  11 12 13  14
+                dup11 dup13 lt fourteen_0_1_skip jumpi
+                swap10 swap11 swap10
+                fourteen_0_1_skip:
+                dup9 dup11 lt fourteen_2_3_skip jumpi
+                swap8 swap9 swap8
+                fourteen_2_3_skip:
+                dup2 dup2 lt fourteen_4_5_skip jumpi
+                swap1
+                fourteen_4_5_skip:
+                dup4 dup4 lt fourteen_6_7_skip jumpi
+                swap2 swap3 swap2
+                fourteen_6_7_skip:
+                dup6 dup6 lt fourteen_8_9_skip jumpi
+                swap4 swap5 swap4
+                fourteen_8_9_skip:
+                dup8 dup8 lt fourteen_10_11_skip jumpi
+                swap6 swap7 swap6
+                fourteen_10_11_skip:
+                // 12 13
+                dup13 dup15 lt fourteen_12_13_skip jumpi
+                swap12 swap13 swap12
+                fourteen_12_13_skip:
+                //
+                dup10 dup13 lt fourteen_0_2_skip jumpi
+                swap9 swap11 swap9
+                fourteen_0_2_skip:
+                dup3 dup2 lt fourteen_4_6_skip jumpi
+                swap2
+                fourteen_4_6_skip:
+                dup7 dup6 lt fourteen_8_10_skip jumpi
+                swap4 swap6 swap4
+                fourteen_8_10_skip:
+
+                dup9 dup12 lt fourteen_1_3_skip jumpi
+                swap8 swap10 swap8
+                fourteen_1_3_skip:
+                dup4 dup3 lt fourteen_5_7_skip jumpi
+                swap1 swap3 swap1
+                fourteen_5_7_skip:
+                dup8 dup7 lt fourteen_9_11_skip jumpi
+                swap5 swap7 swap5
+                fourteen_9_11_skip:
+                dup1 dup13 lt fourteen_0_4_skip jumpi
+                swap11
+                fourteen_0_4_skip:
+
+                // 8 12
+                dup14 dup6 lt fourteen_8_12_skip jumpi
+                swap13 swap4 swap13
+                fourteen_8_12_skip:
+                //
+                dup2 dup12 lt fourteen_1_5_skip jumpi //    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v13 v12 p13 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap1 swap10 swap1                    // s: 0  1  2  3  4  5  6   7   8  9  10 11 12  13
+                fourteen_1_5_skip:                    // d: 1  2  3  4  5  6  7   8   9 10  11 12 13  14
+                // 9 13
+                dup13 dup7 lt fourteen_9_13_skip jumpi
+                swap5 swap12 swap5
+                fourteen_9_13_skip:
+                //
+                dup3 dup11 lt fourteen_2_6_skip jumpi
+                swap2 swap9 swap2
+                fourteen_2_6_skip:
+                dup4 dup10 lt fourteen_3_7_skip jumpi
+                swap3 swap8 swap3
+                fourteen_3_7_skip:
+                // 0 8
+                dup5 dup13 lt fourteen_0_8_skip jumpi
+                swap4 swap11 swap4
+                fourteen_0_8_skip:
+                // 1 9
+                dup6 dup12 lt fourteen_1_9_skip jumpi
+                swap5 swap10 swap5
+                fourteen_1_9_skip:
+                // 2 10
+                dup7 dup11 lt fourteen_2_10_skip jumpi
+                swap9 swap6 swap9
+                fourteen_2_10_skip:
+                // 3 11
+                dup8 dup10 lt fourteen_3_11_skip jumpi
+                swap8 swap7 swap8
+                fourteen_3_11_skip:
+                // 4 12
+                dup14 dup2 lt fourteen_4_12_skip jumpi
+                swap13
+                fourteen_4_12_skip:
+                // 5 13
+                dup13 dup3 lt fourteen_5_13_skip jumpi
+                swap1 swap12 swap1
+                fourteen_5_13_skip:
+                // 5 10
+                dup7 dup3 lt fourteen_5_10_skip jumpi
+                swap6 swap1 swap6
+                fourteen_5_10_skip:
+                // 6 9
+                dup6 dup4 lt fourteen_6_9_skip jumpi  //    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v13 v12 p13 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap2 swap5 swap2                     // s: 0  1  2  3  4  5  6   7   8  9  10 11 12  13
+                fourteen_6_9_skip:                    // d: 1  2  3  4  5  6  7   8   9 10  11 12 13  14
+                // 3 12
+                dup14 dup10 lt fourteen_3_12_skip jumpi
+                swap8 swap13 swap8
+                fourteen_3_12_skip:
+                //
+                dup8 dup5 lt fourteen_7_11_skip jumpi
+                swap7 swap3 swap7
+                fourteen_7_11_skip:     
+                dup10 dup12 lt fourteen_1_2_skip jumpi
+                swap9 swap10 swap9
+                fourteen_1_2_skip:
+                // 4 8
+                dup5 dup2 lt fourteen_4_8_skip jumpi
+                swap4
+                fourteen_4_8_skip:
+                dup1 dup12 lt fourteen_1_4_skip jumpi
+                swap10
+                fourteen_1_4_skip:
+                // 7 13
+                dup13 dup5 lt fourteen_7_13_skip jumpi
+                swap3 swap12 swap3
+                fourteen_7_13_skip:
+                //
+                // 2 8
+                dup5 dup11 lt fourteen_2_8_skip jumpi
+                swap4 swap9 swap4
+                fourteen_2_8_skip:
+                //
+                dup3 dup3 lt fourteen_5_6_skip jumpi
+                swap1 swap2 swap1
+                fourteen_5_6_skip:
+                dup7 dup7 lt fourteen_9_10_skip jumpi
+                swap5 swap6 swap5
+                fourteen_9_10_skip:
+                dup1 dup11 lt fourteen_2_4_skip jumpi//    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v13 v12 p13 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap9                                // s: 0  1  2  3  4  5  6   7   8  9  10 11 12  13
+                fourteen_2_4_skip:                   // d: 1  2  3  4  5  6  7   8   9 10  11 12 13  14
+                // 11 13
+                dup13 dup9 lt fourteen_11_13_skip jumpi
+                swap7 swap12 swap7
+                fourteen_11_13_skip:
+                //
+                dup5 dup10 lt fourteen_3_8_skip jumpi
+                swap4 swap8 swap4
+                fourteen_3_8_skip:
+                // 7 12
+                dup14 dup5 lt fourteen_7_12_skip jumpi
+                swap3 swap13 swap3
+                fourteen_7_12_skip:
+                //
+                dup5 dup4 lt fourteen_6_8_skip jumpi
+                swap2 swap4 swap2
+                fourteen_6_8_skip:
+                // 10 12
+                dup14 dup8 lt fourteen_10_12_skip jumpi
+                swap13 swap6 swap13
+                fourteen_10_12_skip:
+                // mark
+                dup2 dup10 lt fourteen_3_5_skip jumpi
+                swap1 swap8 swap1
+                fourteen_3_5_skip:
+                dup6 dup5 lt fourteen_7_9_skip jumpi
+                swap3 swap5 swap3
+                fourteen_7_9_skip:
+                dup1 dup10 lt fourteen_3_4_skip jumpi
+                swap8
+                fourteen_3_4_skip:
+                dup3 dup3 lt fourteen_5_6_skip_2 jumpi
+                swap1 swap2 swap1
+                fourteen_5_6_skip_2:
+                dup5 dup5 lt fourteen_7_8_skip jumpi
+                swap3 swap4 swap3
+                fourteen_7_8_skip:
+                dup7 dup7 lt fourteen_9_10_skip_2 jumpi
+                swap5 swap6 swap5
+                fourteen_9_10_skip_2:
+                // 11 12
+                dup14 dup9 lt fourteen_11_12_skip jumpi
+                swap13 swap7 swap13
+                fourteen_11_12_skip:
+                //
+                dup4 dup4 lt fourteen_6_7_skip_2 jumpi
+                swap2 swap3 swap2
+                fourteen_6_7_skip_2:
+                dup6 dup6 lt fourteen_8_9_skip_2 jumpi
+                swap4 swap5 swap4
+                fourteen_8_9_skip_2://    v4 v5 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v13 v12 p13 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+
+                // oops... this is exactly the opposite of what I wanted!
+                swap13
+                swap1               //    v5 v12 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v13 v4 p13 p12 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap15              //   p12 v12 v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v13 v4 p13 v5 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                mstore              //   v6 v7 v8 v9 v10 v11 v3 v2 v1 v0 v13 v4 p13 v5 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap1               //   v7 v6 v8 v9 v10 v11 v3 v2 v1 v0 v13 v4 p13 v5 p4 p5 p6 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap16
+                mstore              //   v8 v9 v10 v11 v3 v2 v1 v0 v13 v4 p13 v5 p4 p5 v7 p7 p8 p9 p10 p11 p3 p2 p1 p0
+                swap1
+                swap16
+                mstore              //   v10 v11 v3 v2 v1 v0 v13 v4 p13 v5 p4 p5 v7 p7 v9 p9 p10 p11 p3 p2 p1 p0
+                swap1
+                swap16
+                mstore              //   v3 v2 v1 v0 v13 v4 p13 v5 p4 p5 v7 p7 v9 p9 v11 p11 p3 p2 p1 p0
+                swap1
+                swap16
+                mstore              //   v1 v0 v13 v4 p13 v5 p4 p5 v7 p7 v9 p9 v11 p11 v2 p2 p1 p0
+                swap1
+                swap16
+                mstore              //   v13 v4 p13 v5 p4 p5 v7 p7 v9 p9 v11 p11 v2 p2 v0 p0
+                swap4               //   p4  v4 p13 v5 v13 p5 v7 p7 v9 p9 v11 p11 v2 p2 v0 p0
+                mstore              //   p13 v5 v13 p5 v7 p7 v9 p9 v11 p11 v2 p2 v0 p0
+                swap3
+                mstore              //   v13 p13 v7 p7 v9 p9 v11 p11 v2 p2 v0 p0
+                swap1 mstore
+                swap1 mstore
+                swap1 mstore
+                swap1 mstore
+                swap1 mstore
+                swap1 mstore
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+            // This is the point where I've given up trying to optimally arrange
+            // variables and memory pointers on the stack, like holy smokes
+            // keeping track of everything is a mess
+            sort_fifteen:
+                dup1 0x1a0 add
+                dup2 0x180 add
+                dup3 0x160 add
+                dup4 0x140 add
+                dup5 0x120 add
+                dup6 0x100 add
+                dup7 0xe0 add
+                dup8 0xc0 add
+                dup9 0xa0 add
+                dup10 0x80 add
+                dup11 0x60 add
+                dup12 0x40 add
+                dup13 0x20 add
+                dup14 0x1c0 add     // p14 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p0
+                swap14              // p0 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14
+
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload         //   v0 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13 v14 p0 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14
+                                    //s: 0  1  2  3  4  5  6  7  8  9  10  11  12  13  14
+                                    //d: 1  2  3  4  5  6  7  8  9  10 11  12  13  14  15
+
+                dup2 dup2 lt ft_0_1_skip jumpi
+                swap1
+                ft_0_1_skip:
+                dup4 dup4 lt ft_2_3_skip jumpi
+                swap2 swap3 swap2
+                ft_2_3_skip:
+                dup6 dup6 lt ft_4_5_skip jumpi
+                swap4 swap5 swap4
+                ft_4_5_skip:
+                dup8 dup8 lt ft_6_7_skip jumpi
+                swap6 swap7 swap6
+                ft_6_7_skip:
+                dup10 dup10 lt ft_8_9_skip jumpi
+                swap8 swap9 swap8
+                ft_8_9_skip:
+                dup12 dup12 lt ft_10_11_skip jumpi
+                swap10 swap11 swap10
+                ft_10_11_skip:
+                dup14 dup14 lt ft_12_13_skip jumpi
+                swap12 swap13 swap12
+                ft_12_13_skip:
+                dup3 dup2 lt ft_0_2_skip jumpi
+                swap2
+                ft_0_2_skip:
+                dup7 dup6 lt ft_4_6_skip jumpi
+                swap4 swap6 swap4
+                ft_4_6_skip:
+                dup11 dup10 lt ft_8_10_skip jumpi
+                swap8 swap10 swap8
+                ft_8_10_skip:
+                dup15 dup14 lt ft_12_14_skip jumpi
+                swap12 swap14 swap12
+                ft_12_14_skip:
+                dup4 dup3 lt ft_1_3_skip jumpi
+                swap1 swap3 swap1
+                ft_1_3_skip:
+                dup8 dup7 lt ft_5_7_skip jumpi
+                swap5 swap7 swap5
+                ft_5_7_skip:
+                dup12 dup11 lt ft_9_11_skip jumpi
+                swap9 swap11 swap9
+                ft_9_11_skip:
+                dup5 dup2 lt ft_0_4_skip jumpi
+                swap4
+                ft_0_4_skip:
+                dup13 dup10 lt ft_8_12_skip jumpi
+                swap8 swap12 swap8
+                ft_8_12_skip:
+                dup6 dup3 lt ft_1_5_skip jumpi
+                swap1 swap5 swap1
+                ft_1_5_skip:
+                dup14 dup11 lt ft_9_13_skip jumpi
+                swap9 swap13 swap9
+                ft_9_13_skip:
+                dup7 dup4 lt ft_2_6_skip jumpi
+                swap2 swap6 swap2
+                ft_2_6_skip:
+                dup15 dup12 lt ft_10_14_skip jumpi
+                swap10 swap14 swap10
+                ft_10_14_skip:
+                dup8 dup5 lt ft_3_7_skip jumpi
+                swap3 swap7 swap3
+                ft_3_7_skip:
+                dup9 dup2 lt ft_0_8_skip jumpi
+                swap8
+                ft_0_8_skip:
+                dup10 dup3 lt ft_1_9_skip jumpi
+                swap1 swap9 swap1
+                ft_1_9_skip:
+                dup11 dup4 lt ft_2_10_skip jumpi
+                swap2 swap10 swap2
+                ft_2_10_skip:
+                dup12 dup5 lt ft_3_11_skip jumpi
+                swap3 swap11 swap3
+                ft_3_11_skip:
+                dup13 dup6 lt ft_4_12_skip jumpi
+                swap4 swap12 swap4
+                ft_4_12_skip:
+                dup14 dup7 lt ft_5_13_skip jumpi
+                swap5 swap13 swap5
+                ft_5_13_skip:
+                dup15 dup8 lt ft_6_14_skip jumpi
+                swap6 swap14 swap6
+                ft_6_14_skip:
+                dup11 dup7 lt ft_5_10_skip jumpi
+                swap5 swap10 swap5
+                ft_5_10_skip:
+                dup10 dup8 lt ft_6_9_skip jumpi
+                swap6 swap9 swap6
+                ft_6_9_skip:
+                dup13 dup5 lt ft_3_12_skip jumpi
+                swap3 swap12 swap3
+                ft_3_12_skip:
+                dup15 dup15 lt ft_13_14_skip jumpi
+                swap13 swap14 swap13
+                ft_13_14_skip:
+                dup12 dup9 lt ft_7_11_skip jumpi
+                swap7 swap11 swap7
+                ft_7_11_skip:
+                dup3 dup3 lt ft_1_2_skip jumpi
+                swap1 swap2 swap1
+                ft_1_2_skip:
+                dup9 dup6 lt ft_4_8_skip jumpi
+                swap8 swap4 swap8
+                ft_4_8_skip:
+                dup5 dup3 lt ft_1_4_skip jumpi
+                swap1 swap4 swap1
+                ft_1_4_skip:
+                dup14 dup9 lt ft_7_13_skip jumpi
+                swap13 swap7 swap13
+                ft_7_13_skip:
+                dup9 dup4 lt ft_2_8_skip jumpi
+                swap2 swap8 swap2
+                ft_2_8_skip:
+                dup15 dup13 lt ft_11_14_skip jumpi
+                swap11 swap14 swap11
+                ft_11_14_skip:
+                dup7 dup7 lt ft_5_6_skip jumpi
+                swap5 swap6 swap5
+                ft_5_6_skip:
+                dup11 dup11 lt ft_9_10_skip jumpi
+                swap9 swap10 swap9
+                ft_9_10_skip:
+                dup5 dup4 lt ft_2_4_skip jumpi
+                swap2 swap4 swap2
+                ft_2_4_skip:
+                dup14 dup13 lt ft_11_13_skip jumpi
+                swap11 swap13 swap11
+                ft_11_13_skip:
+                dup9 dup5 lt ft_3_8_skip jumpi
+                swap3 swap8 swap3
+                ft_3_8_skip:
+                dup13 dup9 lt ft_7_12_skip jumpi
+                swap7 swap12 swap7
+                ft_7_12_skip:
+                dup9 dup8 lt ft_6_8_skip jumpi
+                swap6 swap8 swap6
+                ft_6_8_skip:
+                dup13 dup12 lt ft_10_12_skip jumpi
+                swap10 swap12 swap10
+                ft_10_12_skip:
+                dup6 dup5 lt ft_3_5_skip jumpi
+                swap3 swap5 swap3
+                ft_3_5_skip:
+                dup10 dup9 lt ft_7_9_skip jumpi
+                swap7 swap9 swap7
+                ft_7_9_skip:
+                dup5 dup5 lt ft_3_4_skip jumpi
+                swap3 swap4 swap3
+                ft_3_4_skip:
+                dup7 dup7 lt ft_5_6_skip_2 jumpi
+                swap5 swap6 swap5
+                ft_5_6_skip_2:
+                dup9 dup9 lt ft_7_8_skip jumpi
+                swap7 swap8 swap7
+                ft_7_8_skip:
+                dup11 dup11 lt ft_9_10_skip_2 jumpi
+                swap9 swap10 swap9
+                ft_9_10_skip_2:
+                dup13 dup13 lt ft_11_12_skip jumpi
+                swap11 swap12 swap11
+                ft_11_12_skip:
+                dup8 dup8 lt ft_6_7_skip_2 jumpi
+                swap6 swap7 swap6
+                ft_6_7_skip_2:
+                dup10 dup10 lt ft_8_9_skip_2 jumpi
+                swap8 swap9 swap8
+                ft_8_9_skip_2:  //   v0 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13 v14 p0 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14
+                swap16 mstore
+                swap16 mstore
+                swap16 mstore
+                swap16 mstore
+                swap16 mstore
+                swap16 mstore
+                swap16 mstore//  v14 p0 v0 p2 v2 p4 v4 p6 v6 p8 v8 p10 v10 p12 v12 p14
+                dup16 mstore
+                mstore
+                mstore
+                mstore
+                mstore
+                mstore
+                mstore
+                mstore
+                pop
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+
+            sort_sixteen:
+                dup1 0x1c0 add
+                dup2 0x1a0 add
+                dup3 0x180 add
+                dup4 0x160 add
+                dup5 0x140 add
+                dup6 0x120 add
+                dup7 0x100 add
+                dup8 0xe0 add
+                dup9 0xc0 add
+                dup10 0xa0 add
+                dup11 0x80 add
+                dup12 0x60 add
+                dup13 0x40 add
+                dup14 0x20 add
+                dup15 0x1e0 add     // p15 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p0
+                swap15              // p0 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15
+                0x200 mstore         // p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                dup15 mload
+                0x200 mload mload    // v0 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13 v14 v15 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15
+
+                dup2 dup2 lt sxt_0_1_skip jumpi
+                swap1
+                sxt_0_1_skip:
+                dup4 dup4 lt sxt_2_3_skip jumpi
+                swap2 swap3 swap2
+                sxt_2_3_skip:
+                dup6 dup6 lt sxt_4_5_skip jumpi
+                swap4 swap5 swap4
+                sxt_4_5_skip:
+                dup8 dup8 lt sxt_6_7_skip jumpi
+                swap6 swap7 swap6
+                sxt_6_7_skip:
+                dup10 dup10 lt sxt_8_9_skip jumpi
+                swap8 swap9 swap8
+                sxt_8_9_skip:
+                dup12 dup12 lt sxt_10_11_skip jumpi
+                swap10 swap11 swap10
+                sxt_10_11_skip:
+                dup14 dup14 lt sxt_12_13_skip jumpi
+                swap12 swap13 swap12
+                sxt_12_13_skip:
+                dup16 dup16 lt sxt_14_15_skip jumpi
+                swap14 swap15 swap14
+                sxt_14_15_skip:
+                dup3 dup2 lt sxt_0_2_skip jumpi
+                swap2
+                sxt_0_2_skip:
+                dup7 dup6 lt sxt_4_6_skip jumpi
+                swap4 swap6 swap4
+                sxt_4_6_skip:
+                dup11 dup10 lt sxt_8_10_skip jumpi
+                swap8 swap10 swap8
+                sxt_8_10_skip:
+                dup15 dup14 lt sxt_12_14_skip jumpi
+                swap12 swap14 swap12
+                sxt_12_14_skip:
+                dup4 dup3 lt sxt_1_3_skip jumpi
+                swap1 swap3 swap1
+                sxt_1_3_skip:
+                dup8 dup7 lt sxt_5_7_skip jumpi
+                swap5 swap7 swap5
+                sxt_5_7_skip:
+                dup12 dup11 lt sxt_9_11_skip jumpi
+                swap9 swap11 swap9
+                sxt_9_11_skip:
+                dup16 dup15 lt sxt_13_15_skip jumpi
+                swap13 swap15 swap13
+                sxt_13_15_skip:
+                dup5 dup2 lt sxt_0_4_skip jumpi
+                swap4
+                sxt_0_4_skip:
+                dup13 dup10 lt sxt_8_12_skip jumpi
+                swap8 swap12 swap8
+                sxt_8_12_skip:
+                dup6 dup3 lt sxt_1_5_skip jumpi
+                swap1 swap5 swap1
+                sxt_1_5_skip:
+                dup14 dup11 lt sxt_9_13_skip jumpi
+                swap9 swap13 swap9
+                sxt_9_13_skip:
+                dup7 dup4 lt sxt_2_6_skip jumpi
+                swap2 swap6 swap2
+                sxt_2_6_skip:
+                dup15 dup12 lt sxt_10_14_skip jumpi
+                swap10 swap14 swap10
+                sxt_10_14_skip:
+                dup8 dup5 lt sxt_3_7_skip jumpi
+                swap3 swap7 swap3
+                sxt_3_7_skip:
+                dup16 dup13 lt sxt_11_15_skip jumpi
+                swap11 swap15 swap11
+                sxt_11_15_skip:
+                dup9 dup2 lt sxt_0_8_skip jumpi
+                swap8
+                sxt_0_8_skip:
+                dup10 dup3 lt sxt_1_9_skip jumpi
+                swap1 swap9 swap1
+                sxt_1_9_skip:
+                dup11 dup4 lt sxt_2_10_skip jumpi
+                swap2 swap10 swap2
+                sxt_2_10_skip:
+                dup12 dup5 lt sxt_3_11_skip jumpi
+                swap3 swap11 swap3
+                sxt_3_11_skip:
+                dup13 dup6 lt sxt_4_12_skip jumpi
+                swap4 swap12 swap4
+                sxt_4_12_skip:
+                dup14 dup7 lt sxt_5_13_skip jumpi
+                swap5 swap13 swap5
+                sxt_5_13_skip:
+                dup15 dup8 lt sxt_6_14_skip jumpi
+                swap6 swap14 swap6
+                sxt_6_14_skip:
+                dup16 dup9 lt sxt_7_15_skip jumpi
+                swap7 swap15 swap7
+                sxt_7_15_skip:
+                dup11 dup7 lt sxt_5_10_skip jumpi
+                swap5 swap10 swap5
+                sxt_5_10_skip:
+                dup10 dup8 lt sxt_6_9_skip jumpi
+                swap6 swap9 swap6
+                sxt_6_9_skip:
+                dup13 dup5 lt sxt_3_12_skip jumpi
+                swap3 swap12 swap3
+                sxt_3_12_skip:
+                dup15 dup15 lt sxt_13_14_skip jumpi
+                swap13 swap14 swap13
+                sxt_13_14_skip:
+                dup12 dup9 lt sxt_7_11_skip jumpi
+                swap7 swap11 swap7
+                sxt_7_11_skip:
+                dup3 dup3 lt sxt_1_2_skip jumpi
+                swap1 swap2 swap1
+                sxt_1_2_skip:
+                dup9 dup6 lt sxt_4_8_skip jumpi
+                swap8 swap4 swap8
+                sxt_4_8_skip:
+                dup5 dup3 lt sxt_1_4_skip jumpi
+                swap1 swap4 swap1
+                sxt_1_4_skip:
+                dup14 dup9 lt sxt_7_13_skip jumpi
+                swap13 swap7 swap13
+                sxt_7_13_skip:
+                dup9 dup4 lt sxt_2_8_skip jumpi
+                swap2 swap8 swap2
+                sxt_2_8_skip:
+                dup15 dup13 lt sxt_11_14_skip jumpi
+                swap11 swap14 swap11
+                sxt_11_14_skip:
+                dup7 dup7 lt sxt_5_6_skip jumpi
+                swap5 swap6 swap5
+                sxt_5_6_skip:
+                dup11 dup11 lt sxt_9_10_skip jumpi
+                swap9 swap10 swap9
+                sxt_9_10_skip:
+                dup5 dup4 lt sxt_2_4_skip jumpi
+                swap2 swap4 swap2
+                sxt_2_4_skip:
+                dup14 dup13 lt sxt_11_13_skip jumpi
+                swap11 swap13 swap11
+                sxt_11_13_skip:
+                dup9 dup5 lt sxt_3_8_skip jumpi
+                swap3 swap8 swap3
+                sxt_3_8_skip:
+                dup13 dup9 lt sxt_7_12_skip jumpi
+                swap7 swap12 swap7
+                sxt_7_12_skip:
+                dup9 dup8 lt sxt_6_8_skip jumpi
+                swap6 swap8 swap6
+                sxt_6_8_skip:
+                dup13 dup12 lt sxt_10_12_skip jumpi
+                swap10 swap12 swap10
+                sxt_10_12_skip:
+                dup6 dup5 lt sxt_3_5_skip jumpi
+                swap3 swap5 swap3
+                sxt_3_5_skip:
+                dup10 dup9 lt sxt_7_9_skip jumpi
+                swap7 swap9 swap7
+                sxt_7_9_skip:
+                dup5 dup5 lt sxt_3_4_skip jumpi
+                swap3 swap4 swap3
+                sxt_3_4_skip:
+                dup7 dup7 lt sxt_5_6_skip_2 jumpi
+                swap5 swap6 swap5
+                sxt_5_6_skip_2:
+                dup9 dup9 lt sxt_7_8_skip jumpi
+                swap7 swap8 swap7
+                sxt_7_8_skip:
+                dup11 dup11 lt sxt_9_10_skip_2 jumpi
+                swap9 swap10 swap9
+                sxt_9_10_skip_2:
+                dup13 dup13 lt sxt_11_12_skip jumpi
+                swap11 swap12 swap11
+                sxt_11_12_skip:
+                dup8 dup8 lt sxt_6_7_skip_2 jumpi
+                swap6 swap7 swap6
+                sxt_6_7_skip_2:
+                dup10 dup10 lt sxt_8_9_skip_2 jumpi
+                swap8 swap9 swap8
+                sxt_8_9_skip_2:     // v0 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13 v14 v15 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15
+
+                0x200 mload
+                mstore              // v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13 v14 v15 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15
+                swap16 mstore
+                swap16 mstore
+                swap16 mstore
+                swap16 mstore
+                swap16 mstore
+                swap16 mstore
+                swap16 mstore
+                dup16 mstore
+                mstore
+                mstore
+                mstore
+                mstore
+                mstore
+                mstore
+                mstore
+                pop
+
+                dup1 asm_evaluate_stack jumpi
+                asm_finish_sort jump
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+---
+layout: base
+---
+<div class="container">
+    <h1>Submission {{page.name|truncate:11}}</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/{{page.challenge|downcase}}">{{site.data.challenges[page.challenge].title}}</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/{{page.submitter}}/">{{page.submitter|truncate:20}}</a>
+        <tr><th>Submitted at</th><td>{{page.submitted|date:"%Y-%M-%d"}}</td></tr>
+        <tr><th>Gas used</th><td>{{page.gas}}</td></tr>
+    </table>
+    {{ content }}
+</div>

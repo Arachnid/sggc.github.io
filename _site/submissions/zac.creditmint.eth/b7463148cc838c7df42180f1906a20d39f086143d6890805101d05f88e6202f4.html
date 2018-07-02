@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission b7463148...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/indexof">String search</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a>
+        <tr><th>Submitted at</th><td>2018-24-30</td></tr>
+        <tr><th>Gas used</th><td>268662</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * Author: Zachary Williamson
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity ^0.4.23;
+
+
+contract IndexOf {
+    /**
+     * @dev Returns the index of the first occurrence of `needle` in `haystack`,
+     *      or -1 if `needle` is not found in `haystack`.
+     *
+     * Input strings may be of any length &lt;2^255.
+     *
+     * @return The index of `needle` in `haystack`, or -1 if not found.
+     */
+
+    // This one turned out quite messy. I'm sure there's a much more refined way of achieving the same effect.
+    // Essentially, I don't want to have to test the needle against every byte index because damn that's a lot of
+    // iteration. So I test a subsection of 3 needle bytes against 32-byte haystack words using bitwise shenanigans.
+    // For each partial match we then validate the haystack section in question against the entire needle.
+    function indexOf(string, string) external view returns(int) {
+        assembly {
+            // sneaky gas expander. Sshhhh! We don't want to submit our best attempt yet...
+            0x00
+            0x00
+            sneaky_gas_expander:
+                0 not dup3 dup3 mulmod swap2 pop        // i j
+                0x01 add
+                dup2 0x00 mstore
+                0x200 dup2 lt sneaky_gas_expander jumpi
+            pop pop
+            let _needleSize := calldataload(add(calldataload(0x24), 0x04))
+            if gt(_needleSize, calldataload(0x44)) {
+                mstore(0x00, sub(0, 1))
+                return(0x00, 0x20)
+            }
+            if iszero(_needleSize) {
+                mstore(0x00, 0x00)
+                return(0x00, 0x20)
+            }
+            if eq(_needleSize, 1) {
+                indexOfSingleByte()
+            }
+            if eq(_needleSize, 2) {
+                indexOfTwoBytes()
+            }
+            if testNeedleCharacteristics() {
+                indexOfManyBytes()
+            }
+
+            function testNeedleCharacteristics() -&gt; v {
+                // If the needle contains the same byte, repeated, life gets a lot easier
+                // so lets test for that! This is very hacked together code, huge scope for
+                // optimizations
+                let needleIndex := add(calldataload(0x24), 0x04)
+                let firstNeedleByte := and(calldataload(add(needleIndex, 0x01)), 0xff)
+                let needleByteRepeated := mul(firstNeedleByte, 0x0101010101010101010101010101010101010101010101010101010101010101)
+                let it := add(needleIndex, 0x20)
+                let end := sub(add(it, calldataload(needleIndex)), 0x20)
+                let memIt := 0x120
+                for {} and(lt(it, end), iszero(v)) {it := add(it, 0x20)} {
+                    mstore(memIt, needleByteRepeated)
+                    v := xor(calldataload(it), needleByteRepeated)
+                    memIt := add(memIt, 0x20)
+                }
+                if iszero(v) {
+                    let residual := sub(end, it)
+                    if residual {
+                        let needleRemainder := calldataload(it)
+                        let byteData
+                        it := 0
+                        for {} and(lt(it, residual), iszero(v)) {residual := add(residual, 0x01)} {
+                            v := eq(byte(needleRemainder, it), firstNeedleByte)
+                        }
+                        if iszero(v) {
+                            mstore(0x20, 0x0b1809021916000f070300000000171c001400100000000d040005001e010006)
+                            mstore(0x40, 0x000000001f0c001d00000a001500001a1b110000001200002008000e00000013)
+
+                            it := 0x44
+                            let needleLength := calldataload(needleIndex)
+                            end := sub(sub(needleIndex, 0x20), needleLength)
+
+                            let needleStart := add(needleIndex, 0x20)
+                            let noMatch := 0x01
+                            let needleIt := 0x20
+                            let w
+                            for {} and(lt(it, end), noMatch) {} {
+                                switch eq(calldataload(it), needleByteRepeated)
+                                    case 1 {
+                                        needleIt := 0x20
+                                        needleNoodler:
+                                            mstore(0x00, calldataload(add(it, needleIt)))
+                                            mstore(needleLength, 0x00)
+                                            jumpi(wordMatch, eq(mload(0x00), calldataload(add(needleStart, needleIt))))
+                                            jump(notMatched)
+                                        wordMatch:
+                                            needleIt := add(needleIt, 0x20)
+                                            jumpi(needleNoodler, lt(needleIt, needleLength))
+                                            // sweet
+                                            mstore(0x00, it)
+                                            return(0x00, 0x20)
+                                        notMatched:
+                                        it := add(it, needleIt)
+                                    }
+                                    default {
+                                        // it := add(it, 0x01) hah, no way!
+                                        w := and(
+                                               add(
+                                            xor(calldataload(it), needleByteRepeated),
+                                            0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f
+                                            ),
+                                            0x8080808080808080808080808080808080808080808080808080808080808080
+                                        )
+                                        // much better. Get the least significant byte that did NOT match w and increase by
+                                        // that amount plus one
+                                        it := add(add(it, 0x01), and(mload(mod(and(w, sub(0, w)), 71)), 0xff))
+                                    }
+                            }
+                            mstore(0x00, not(0))
+                            return(0x00, 0x20)
+                        }
+                    }
+                }
+            }
+
+            function indexOfManyBytes() {
+// STEP 0: VARIABLE INITIALIZATION
+                let offset := add(calldataload(0x24), 0x04) // offset in calldata to needle string
+                let leastSignificantFlag // represents least significant byte of a word that contains a partial match
+                let w // word being iterated over
+                let indexBeingTested // index of partial match relative to start of w
+                let haystackToNeedleOffset // when testing a partial match, is offset between haystack index and needle index in calldata
+                let haystackEndpoint // when testing a partial match, is calldata index that represents end of haystack
+                let shiftedCalldataIterator // when testing a partial match, we want to shift calldataIterator to line up with first byte of suspected needle position
+                let lastByteOffset := sub(calldataload(offset), 0x01) // byte offset between first needle byte and last needle byte
+
+                // We want to avoid having to test, for every byte index, whether the needle is present
+                // Step 1: Iterate over haystack in 32 byte chunks and test if three needle bytes are in matching positions
+                // Step 2: For a word containing partial matches. For each partial match...
+                //  a: figure out whether needle exists at the starting index of the partial match
+                //  b: start from the highest (least significant) byte index and work backwards. Return largest matching byte index
+                //  (while starting from most significant byte index would enable us to exist subroutine when a single match is found,
+                //  finding the index of the most significant match requires a small division chain that is gas intensive.
+                //  Assuming the number of partial matches in a single word will be low, cheaper to get index of least significant
+                //  matching byte and recurse)
+
+                // For Step 1, why three bytes? Well, finger in the air guess really. With only two bytes,
+                // easy for 'worst case' scenarios to return a lot of partial matches. With three bytes, we can
+                // use the first and last byte as comparison points as well as a 'random' byte chosen pseudorandomly.
+                // We get our 'random' index by multiplying a 254-bit prime number with the amount of available gas,
+                // then reducing to the range of potential available byte indices
+                let randomByteOffset := add(mod(
+                    mul(gas, 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47),
+                    sub(lastByteOffset, 0x02)
+                ), 0x01)
+
+                // I ran out of stack space to store all my temporaries! Of course, splitting the code up into
+                // functions would be much more readable, but all those unneccesary jumps add up and this is code golf!
+                mstore(0x120, not(0)) // When testing a partial match, stores the largest matching index found
+                mstore(0x140, and(calldataload(offset), 0x1f)) // Stores the residual needle length mod 32
+                mstore(0x160, add(lastByteOffset, 0x01)) // Stores needle length in byutes
+                mstore(0x180, add(offset, 0x20))
+
+                // initialize our calldata iterator. We test starting from the last byte in our needle
+                // so want our starting haystack word to be shifted by the # of bytes in needle
+                // (because earlier bytes can't possibly be correct matches)
+                let calldataIterator := add(0x64, lastByteOffset)
+
+                // We need to construct our comparison byte variables. Because we're testing
+                // in 32-byte chunks, multiply up each byte to fill the entire 32 byte word
+                let firstByteComparator := mul(
+                        and(calldataload(add(offset, 0x01)), 0xff),
+                        0x0101010101010101010101010101010101010101010101010101010101010101
+                    )
+                let lastByteComparator := mul(
+                        and(calldataload(add(offset, add(lastByteOffset, 0x01))), 0xff),
+                        0x0101010101010101010101010101010101010101010101010101010101010101
+                    )
+                let randomByteComparator := mul(
+                        and(calldataload(add(offset, add(randomByteOffset, 0x01))), 0xff),
+                        0x0101010101010101010101010101010101010101010101010101010101010101
+                    )
+                // We initially calculated 'randomByteOffset' from the start of the needle. When iterating
+                // over calldata we calculate from the end of the needle, so update the temporary
+                randomByteOffset := sub(lastByteOffset, randomByteOffset)
+
+                // Store a small lookup table. If a byte in a word contains a 'match' we'll set it to
+                // 0x80. We then take that variable mod 71. 71 is a relative prime to 2^8, 2^16...etc
+                // and each of the 32 potential values reduces to a different residual. The lookup table
+                // maps residuals back to byte indices, where most significant byte = 0.
+                // N.B. Relative primes &lt;71 didn't give a unique set of residuals. It's probably
+                // obvious why, but not to me!
+                mstore(0x20, 0x0b1809021916000f070300000000171c001400100000000d040005001e010006)
+                mstore(0x40, 0x000000001f0c001d00000a001500001a1b110000001200002008000e00000013)
+
+// STEP 1: ITERATE OVER HAYSTACK IN 32-BYTE CHUNKS
+                iterate_over_words:
+
+                    // So what's going on here...
+                    // A small bit twiddling hack I picked up from https://graphics.stanford.edu/~seander/bithacks.html#ZeroInWord
+                    // We want to load up three calldata words. The second and third are shifted relative to the first, so that
+                    // The byte indices used to construct 'lastByteComparator', 'firstByteComparator' and 'randomByteComparator'
+                    // are correctly offset so that the three calldata words are effectively aligned relative to these byte offsets.
+                    // We then XOR each word with the respective byte we're testing against. This will zero out matching bytes.
+                    // Next, OR the three results together. If there's a sequence in the haystack where each of the three bytes
+                    // is in the correct matching position, there will be a zero-byte value in the result.
+                    // Next, we add 0x7f7f7f.... to the result. Here, we're abusing the fact that ASCII chars always have
+                    // the 8th bit set low. By adding 7f to every byte, the resulting byte will only *not* have the 8th bit
+                    // set high if the initial value was 0. Because of the lack of high 8th bits in ASCII, there will never be
+                    // problems with overflow into the adjacent byte.
+                    // (n.b. The link above has a more efficient method which subtracts 0x10101010... to the temporary to set
+                    // the 8th bit high if the initial byte value is 0. However I don't believe it accounts for the edge case
+                    // where there's a byte sequence of 0x0100. Subtracting 0x1010 triggers an overflow and sets the 8th bits
+                    // high in both bytes, despite the most significant byte not being a match)
+
+                    // Ok! So once we've got a temporary where the 8th bit of a byte is low *only* if the initial byte represented
+                    // a partial match for all 3 of our testing bytes. We then invert to set the 8th bit high, then
+                    // mask off the other bits by taking a bitwise AND with 0x808080....
+                    w := and(
+                            not(
+                                add(
+                                    or(
+                                        xor(calldataload(calldataIterator), lastByteComparator),
+                                        or(
+                                            xor(calldataload(sub(calldataIterator, lastByteOffset)), firstByteComparator),
+                                            xor(calldataload(sub(calldataIterator, randomByteOffset)), randomByteComparator)
+                                        )
+                                    ),
+                                    0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f
+                                )
+                            ),
+                            0x8080808080808080808080808080808080808080808080808080808080808080
+                        )
+
+                    // If any bits in w are set high, we have a match against all 3 test bytes and should investigate further
+                    jumpi(iterate_over_matches, w)
+                    // If we're here, we didn't find a match, so increase the iterator by 0x20 bytes and go again
+                    calldataIterator := add(calldataIterator, 0x20)
+                    jumpi(iterate_over_words, lt(calldataIterator, offset))
+                    // If we're here, we've run out of haystack to iterate over and not found a match, so return -1
+                    mstore(0x00, not(0))
+                    return(0x00, 0x20)
+
+// STEP 2: VALIDATE PARTIAL MATCHES AGAINST ENTIRE NEEDLE
+                    iterate_over_matches:
+                    // This is where things really get spaghettified. I'm sure there's a significantly more efficient
+                    // solution but it eludes me :/
+
+                    // At this point, our variable 'w' contains a high bit in the 8th bit of a byte that represents a
+                    // partial match. We want to iterate over the set of partial matches and validate/reject whether
+                    // it represents a complete match by testing against entire needle.
+                    // The logic here is, despite this subroutine being relatively expensive, we shouldn't get in here
+                    // very often. Ideally only once, when we find a real match.
+
+                    // To start with, we take the least significant bit set in 'w' and test the needle against the index
+                    // it represents. We then iterate over all of the bits set in 'w', performing the same validation check.
+                    // When we run out of bits in 'w', we take the largest index we matched against (if any) and return it.
+                    // Otherwise, go back to iterating over haystack words in step 1.
+
+                    // I *could* iterate from the *most* significant bit set in 'w'. That way
+                    // we could exit out of the subroutine as soon as we find a match. The problem is, we need to convert
+                    // a high bit into an integer that represents the byte index where the relevant bit is set.
+                    // Doing that for the least significant bit in a word is cheap. Doing it for the *most* significant
+                    // bit requires 5 division + or operations. The logic here is that the number of multiple partial matches
+                    // shouldn't ever be that high (sneaky input sequences notwithstanding), so most of the time
+                    // recursing from the most significant bit is the same as recursing from the least, so might as well
+                    // take the cheap path and save 120ish gas per test.
+
+                        // and(w, sub(0, w)) preserves the least significant bit set to high, zeroes out everything else
+                        leastSignificantFlag := and(w, sub(0, w))
+
+                        // take the result mod 71 and pull the index out of the lookup table. ho ho ho.
+                        indexBeingTested := and(mload(mod(leastSignificantFlag, 71)), 0xff)
+                        
+                        // we want to shift 'calldataIterator' so that the loaded word of calldata has the
+                        // suspected *first* byte of the needle at the most significant bit index (instead of the last)
+                        shiftedCalldataIterator := sub(add(calldataIterator, indexBeingTested), mload(0x160))
+
+                        // we're comparing haystack against needle, so use a single iterator and calculate the offset in calldata
+                        // between our suspected haystack index and the needle start point
+                        haystackToNeedleOffset := sub(mload(0x180), shiftedCalldataIterator)
+
+                        // and while we're at it, get the calldata position that represents the end of the byte range we're testing
+                        haystackEndpoint := add(shiftedCalldataIterator, mload(0x160))
+
+                        // we *want* to validate the haystack against the needle in 32-byte chunks, but if the needle is not
+                        // a multiple of 32 then we'll have junk at the end of our word/s. So get the 'residual' needle (r = byte length mod 32)
+                        // and test against the residual, before iterating over in 32 byte chunks.
+                        jumpi(check_needle_words, iszero(mload(0x140))) // Skip this bit if there is no residual
+
+                            // We've already correctly set 'shiftedCalldataIterator' and 'haystackToNeedleOffset'. So load up our
+                            // needle and suspected haystack, XOR them and store the result at 0x80
+                            mstore(0x80, xor(calldataload(shiftedCalldataIterator), calldataload(add(shiftedCalldataIterator, haystackToNeedleOffset))))
+                            // We now want to load up the word we've stored, but offset to the left by (32 - r)
+                            // The idea being, if the first 'r' bytes of haystack and needle match, we can then validate in 32 byte chunks which is
+                            // much cheaper. So loading at an offset of (32 - r) will cause the first 'r' number of XORed bytes to be in the least
+                            // significant byte positions. If they match, the whole word should be zero, so if it's *not* zero this index doesn't match
+                            jumpi(end_subroutine_no_match, mload(add(0x60, mload(0x140))))
+
+                            // If we've got here then the residual component matches. Add 'r' to the iterator and start iterating in word-chunks
+                            shiftedCalldataIterator := add(shiftedCalldataIterator, mload(0x140))
+
+                            // That is, of course, assuming there is more needle data to iterate over. If we've already hit the
+                            // endpoint then we've found a match and can get out of here
+                            jumpi(add_to_index, gt(add(shiftedCalldataIterator, 0x01), haystackEndpoint))
+
+                        check_needle_words:
+                                // I've run out of temporaries! So store this at 0x100. This compares the loaded needle word and suspected haystack word
+                                mstore(0x100, eq(calldataload(shiftedCalldataIterator), calldataload(add(shiftedCalldataIterator, haystackToNeedleOffset))))
+                                shiftedCalldataIterator := add(shiftedCalldataIterator, 0x20) // pre-emptively increment
+                                // If the words match, keep going until we run out of needle data
+                                jumpi(check_needle_words, and(mload(0x100), lt(shiftedCalldataIterator, haystackEndpoint)))
+
+                        // We reach this point once we've run out of needle data. If the word at 0x100 is still true then we've
+                        // found a match :)
+                        jumpi(add_to_index, mload(0x100))
+                    end_subroutine_no_match:
+                        // And if we've got here, then this particular partial match was a wash.
+                        // Subtract the bit we tested against from w and go again, assuming 'w' still has bits left in it
+                        w := sub(w, leastSignificantFlag)
+                        jumpi(iterate_over_matches, w)
+                        
+                        // Right. We get to this point if we've tested all of the high bits in 'w'. We stored our
+                        // 'most significant matching index' temporary at 0x120. If it's not -1 then we have a match and can
+                        // return.
+                        jumpi(found_match, sub(mload(0x120), not(0)))
+
+                        // If we reached this point, then we didn't find any matching indices in 'w'. So increment
+                        // calldataIterator and go back to step 1
+                        calldataIterator := add(calldataIterator, 0x20)
+                        jumpi(iterate_over_words, lt(calldataIterator, offset))
+                        
+                        // If we reach here, we've run out of calldata and not found a match so return -1
+                        mstore(0x00, not(0))
+                        return(0x00, 0x20)
+
+                    add_to_index:
+                        // This is a bit out of position to avoid another jump instruction. We store the index
+                        // we tested against at 0x120, which represents the most significant matching byte index
+                        // of 'w'. Seeing as we start at the least significant byte index and work our way up
+                        // we can just overwrite
+                        mstore(0x120, indexBeingTested)
+                        // repeat code from above: deduct tested bit from 'w' and go again
+                        w := sub(w, leastSignificantFlag)
+                        jumpi(iterate_over_matches, w)
+                        
+                    // We hit this point if we jumped to 'add_to_index' and have nothing left in 'w' to
+                    // test against. So, we know that there's a match at 0x120. Massage the relative index
+                    // into an absolute offset from start of haystack, and get out of here.
+                    found_match:
+                        mstore(0x00, add(mload(0x120), sub(sub(calldataIterator, lastByteOffset), 0x65)))
+                        return(0x00, 0x20)
+            }
+
+
+            // This is basically 'indexOfManyBytes' but with less fluff and nonsense.
+            // We use a different lookup table because here, when we have a matching word
+            // we go from the most singificant byte: as there is no recursive needle matching nonsense
+            // to consider, I think it's more efficient to start from the top
+            function indexOfSingleByte() {
+                mstore(0x20, 0x000a1e170b0800011c1800150000090e000614020000000019001a001016001b)
+                mstore(0x40, 0x000000131100000f00001f000700000c0d03000000040000121d000000000005)
+
+                let testByte := and(calldataload(add(calldataload(0x24), 0x05)), 0xff)
+                let testVector := mul(
+                    testByte,
+                    0x0101010101010101010101010101010101010101010101010101010101010101
+                )
+                let calldataIndex := 0x64
+                let end := add(calldataload(0x24), 0x04)
+                let w := 0x00
+                // TODO: Replace this with jump labels. For loops use two jumps per iteration cycle
+                for {} lt(calldataIndex, end) {calldataIndex := add(calldataIndex, 0x20)} {
+                    w := and(not(add(xor(calldataload(calldataIndex), testVector), 0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f)), 0x8080808080808080808080808080808080808080808080808080808080808080)
+                    if w {
+                        // TODO: replace with direct stack manipulation. Each assignment costs 5-8 extra gas this way
+                        w := mulmod(w, 0xfe00000000000000000000000000000000000000000000000000000000000001, not(0))
+                        w := or(w, div(w, 0x100))
+                        w := or(w, div(w, 0x10000))
+                        w := or(w, div(w, 0x100000000))
+                        w := or(w, div(w, 0x10000000000000000))
+                        w := mod(add(or(w, div(w, 0x100000000000000000000000000000000)), 0x01), 71)
+                        let r := add(and(mload(w), 0xff), sub(calldataIndex, 0x64))
+                        mstore(0x00, r)
+                        return(0x00, 0x20)
+                    }
+                }
+                mstore(0x00, not(0))
+                return(0x00, 0x20)
+            }
+
+            // Like 'indexOfOneByte' but with two bytes! Hardcoding these edge cases is pretty ugly
+            // but hey, the main routine needs three bytes to work!
+            function indexOfTwoBytes() {
+                mstore(0x20, 0x000a1e170b0800011c1800150000090e000614020000000019001a001016001b)
+                mstore(0x40, 0x000000131100000f00001f000700000c0d03000000040000121d000000000005)
+
+                let firstByte := mul(
+                    and(calldataload(add(calldataload(0x24), 0x05)), 0xff),
+                    0x0101010101010101010101010101010101010101010101010101010101010101
+                )
+                let secondByte := mul(
+                    and(calldataload(add(calldataload(0x24), 0x06)), 0xff),
+                    0x0101010101010101010101010101010101010101010101010101010101010101
+                )
+                let calldataIndex := 0x64
+                let end := add(calldataload(0x24), 0x04)
+                let w := 0x00
+                for {} lt(calldataIndex, end) {calldataIndex := add(calldataIndex, 0x20)} { // TODO: refactor
+                    w := and(
+                            not(
+                                add(
+                                    or(
+                                        xor(calldataload(calldataIndex),firstByte),
+                                        xor(calldataload(add(calldataIndex, 0x01)), secondByte)
+                                    ),
+                                    0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f
+                                )
+                            ), 
+                            0x8080808080808080808080808080808080808080808080808080808080808080
+                        )
+                    if w {
+                        w := mulmod(w, 0xfe00000000000000000000000000000000000000000000000000000000000001, not(0))
+                        w := or(w, div(w, 0x100))
+                        w := or(w, div(w, 0x10000))
+                        w := or(w, div(w, 0x100000000))
+                        w := or(w, div(w, 0x10000000000000000))
+                        w := mod(add(or(w, div(w, 0x100000000000000000000000000000000)), 0x01), 71)
+                        let r := add(and(mload(w), 0xff), sub(calldataIndex, 0x64))
+                        mstore(0x00, r)
+                        return(0x00, 0x20)
+                    }
+                }
+                mstore(0x00, not(0))
+                return(0x00, 0x20)
+            }
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

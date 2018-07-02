@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 3bb7559c...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/hexdecoder">Hex decoder</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a>
+        <tr><th>Submitted at</th><td>2018-49-31</td></tr>
+        <tr><th>Gas used</th><td>33334</td></tr>
+    </table>
+    <pre><code class="language-solidity">contract HexDecoder {
+    function decode(string /* input */) pure public returns(bytes) {
+        assembly {
+
+          // WARNING! This is NOT safe. For the purpose of this contest I
+          //          am assuming the ABI pointer to the dynamic slot is
+          //          32, but that is not, in general, safe to assume
+          let offset := 68
+          let length := calldataload(36)
+          let end := add(68, length)
+
+          // Output length
+          length := div(length, 2)
+
+          // Allocate memory for the response
+          let output := mload(0x40)
+          let outputLength := and(add(length, 95), 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0)
+
+          // Should do this, to update free-memory pointer, but since we aren't using any Solidity
+          // this is safe to leave
+          //mstore(0x40, add(output, outputLength))
+
+          // Pointer to the dynamic slot for the bytes
+          mstore(output, 0x20)
+
+          // Length of the bytes (half the length
+          mstore(add(output, 32), length)
+
+          let outOffset := add(output, 64)
+          for { } lt(offset, end) { } {
+
+            let data := calldataload(offset)
+
+            // For letters, the 7th bit is high; n0 is 0x90 for letters 0x00 for numbers
+            let n0 := and(data, 0x4040404040404040404040404040404040404040404040404040404040404040)
+            n0 := or(add(n0, n0), div(n0, 4))
+
+            // Move the data over 1 nibble
+            data := mul(data, 0x10)
+
+            // Take the lowest nibble from each ascii character (upper nibble since we shifted)
+            // 0-9: already the correct value
+            // A-F: add 9 to the value to offset A (1) -&gt; 10, etc
+            data := and(data, 0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0)
+            data := add(n0, data)
+
+            // Shift all nibbles over to the left and odd nibbles into their neighbour
+            // (odd bytes become junk)
+            data := or(data, mul(data, 0x10))
+
+            // Remove the spaces in the output by chunking
+            data := and(data, 0xff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00)
+            data := or(data, mul(data, 0x100))
+            data := and(data, 0xffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000)
+            data := or(data, mul(data, 0x10000))
+            data := and(data, 0xffffffff00000000ffffffff00000000ffffffff00000000ffffffff00000000)
+            data := or(data, mul(data, 0x100000000))
+            data := and(data, 0xffffffffffffffff0000000000000000ffffffffffffffff0000000000000000)
+            data := or(data, mul(data, 0x10000000000000000))
+
+            mstore(outOffset, data)
+
+            outOffset := add(outOffset, 16)
+
+            offset := add(offset, 0x20)
+          }
+
+          return(output, outputLength)
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

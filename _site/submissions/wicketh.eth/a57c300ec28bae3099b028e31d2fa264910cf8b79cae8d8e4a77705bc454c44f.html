@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission a57c300e...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/hexdecoder">Hex decoder</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/wicketh.eth/">wicketh.eth</a>
+        <tr><th>Submitted at</th><td>2018-24-09</td></tr>
+        <tr><th>Gas used</th><td>912835</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity ^0.4.23;
+
+contract HexDecoder {
+    
+    /// @author Remco Bloemen &lt;remco@wicked.ventures&gt;
+
+    uint256 constant lowNibs = 0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F;
+    uint256 constant bit1 = 0x0101010101010101010101010101010101010101010101010101010101010101;
+    uint256 constant byten1 = 0x0FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF0;
+    uint256 constant byten2 = 0x0FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF000;
+    uint256 constant byten3 = 0x0FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF0000000;
+    uint256 constant byten4 = 0x0FFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF000000000000000;
+    
+    uint256 constant f1 = 0x11;
+    uint256 constant f2 = 0x101;
+    uint256 constant f3 = 0x10001;
+    uint256 constant f4 = 0x100000001;
+    uint256 constant f5 = 0x100000000000000010;
+    
+    function decode(string input)
+        public pure
+        returns(bytes output)
+    {
+        uint256 ol = bytes(input).length / 2;
+        output = new bytes(ol);
+        uint256 i = 0;
+        uint256 j = 0;
+        if (ol &gt; 15) {
+            for (; i &lt; ol - 15; ) {
+                
+                uint256 B = read32(bytes(input), j);
+                j += 32;
+                
+                // SWAR convert hex to nibbles
+                B = (B &amp; lowNibs) + (9 * ((B / 64) &amp; bit1));
+                
+                // SWAR shuffle nibbles to left
+                B = (B * f1) &amp; byten1;
+                B = (B * f2) &amp; byten2;
+                B = (B * f3) &amp; byten3;
+                B = (B * f4) &amp; byten4;
+                B =  B * f5;
+                
+                // Write to output
+                write16(output, i, B);
+                i += 16;
+            }
+        }
+        for (; i &lt; ol; ) {
+            uint8 a = uint8(read1(bytes(input), j++));
+            uint8 b = uint8(read1(bytes(input), j++));
+            a = (a &amp; 0xf) + ((a / 64) * 9);
+            b = (b &amp; 0xf) + ((b / 64) * 9);
+            output[i++] = bytes1((a &lt;&lt; 4) | b);
+        }
+    }
+    
+    function read32(bytes memory input, uint256 j)
+        internal pure
+        returns (uint256)
+    {
+        // Load input block
+        uint256 B;
+                  B |= read1(input, j     );
+        B *= 256; B |= read1(input, j +  1);
+        B *= 256; B |= read1(input, j +  2);
+        B *= 256; B |= read1(input, j +  3);
+        B *= 256; B |= read1(input, j +  4);
+        B *= 256; B |= read1(input, j +  5);
+        B *= 256; B |= read1(input, j +  6);
+        B *= 256; B |= read1(input, j +  7);
+        B *= 256; B |= read1(input, j +  8);
+        B *= 256; B |= read1(input, j +  9);
+        B *= 256; B |= read1(input, j + 10);
+        B *= 256; B |= read1(input, j + 11);
+        B *= 256; B |= read1(input, j + 12);
+        B *= 256; B |= read1(input, j + 13);
+        B *= 256; B |= read1(input, j + 14);
+        B *= 256; B |= read1(input, j + 15);
+        B *= 256; B |= read1(input, j + 16);
+        B *= 256; B |= read1(input, j + 17);
+        B *= 256; B |= read1(input, j + 18);
+        B *= 256; B |= read1(input, j + 19);
+        B *= 256; B |= read1(input, j + 20);
+        B *= 256; B |= read1(input, j + 21);
+        B *= 256; B |= read1(input, j + 22);
+        B *= 256; B |= read1(input, j + 23);
+        B *= 256; B |= read1(input, j + 24);
+        B *= 256; B |= read1(input, j + 25);
+        B *= 256; B |= read1(input, j + 26);
+        B *= 256; B |= read1(input, j + 27);
+        B *= 256; B |= read1(input, j + 28);
+        B *= 256; B |= read1(input, j + 29);
+        B *= 256; B |= read1(input, j + 30);
+        B *= 256; B |= read1(input, j + 31);
+        return B;
+    }
+    
+    function read1(bytes memory input, uint256 i)
+        internal pure
+        returns (uint256)
+    {
+        return uint256(bytes(input)[i]);
+    }
+    
+    function write16(bytes memory output, uint256 i, uint256 B)
+        internal pure
+    {
+        write1(output, i     , bytes1(bytes32(B))); B *= 256;
+        write1(output, i +  1, bytes1(bytes32(B))); B *= 256;
+        write1(output, i +  2, bytes1(bytes32(B))); B *= 256;
+        write1(output, i +  3, bytes1(bytes32(B))); B *= 256;
+        write1(output, i +  4, bytes1(bytes32(B))); B *= 256;
+        write1(output, i +  5, bytes1(bytes32(B))); B *= 256;
+        write1(output, i +  6, bytes1(bytes32(B))); B *= 256;
+        write1(output, i +  7, bytes1(bytes32(B))); B *= 256;
+        write1(output, i +  8, bytes1(bytes32(B))); B *= 256;
+        write1(output, i +  9, bytes1(bytes32(B))); B *= 256;
+        write1(output, i + 10, bytes1(bytes32(B))); B *= 256;
+        write1(output, i + 11, bytes1(bytes32(B))); B *= 256;
+        write1(output, i + 12, bytes1(bytes32(B))); B *= 256;
+        write1(output, i + 13, bytes1(bytes32(B))); B *= 256;
+        write1(output, i + 14, bytes1(bytes32(B))); B *= 256;
+        write1(output, i + 15, bytes1(bytes32(B)));
+    }
+    
+    function write1(bytes memory output, uint256 i, bytes1 o)
+        internal pure
+    {
+        output[i] = o;
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

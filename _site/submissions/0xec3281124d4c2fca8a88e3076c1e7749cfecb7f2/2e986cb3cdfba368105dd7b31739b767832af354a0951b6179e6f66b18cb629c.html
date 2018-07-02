@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 2e986cb3...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/brainfuck">BrainFuck interpreter</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0xec3281124d4c2fca8a88e3076c1e7749cfecb7f2/">0xec3281124d4c2fc...</a>
+        <tr><th>Submitted at</th><td>2018-06-12</td></tr>
+        <tr><th>Gas used</th><td>787754</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity 0.4.24;
+
+
+contract BrainFuck {
+    /**
+     * @dev Executes a BrainFuck program, as described at https://en.wikipedia.org/wiki/Brainfuck.
+     *
+     * Memory cells, input, and output values are all expected to be 8 bit
+     * integers. Incrementing past 255 should overflow to 0, and decrementing
+     * below 0 should overflow to 255.
+     *
+     * Programs and input streams may be of any length. The memory tape starts
+     * at cell 0, and will never be moved below 0 or above 1023. No program will
+     * output more than 1024 values.
+     *
+     * @param program The BrainFuck program.
+     * @param input The program's input stream.
+     * @return The program's output stream. Should be exactly the length of the
+     *          number of outputs produced by the program.
+     */
+    function execute(bytes program, bytes input) public pure returns(bytes) {
+        bytes memory outputJumpCacheTape = new bytes(1024); // 0x0-0x01f length, 0x020-0x11F output, 0x120-0x31F jumpCache, 0x320-onward tape
+        assembly {
+            let programStart := add(program, 0x20)
+            let blankCount := 0
+            let programEnd := add(programStart, mload(program))
+            {
+                let programCounter := 0
+                for {let programPointer := programStart} lt(programPointer, programEnd) {programPointer := add(programPointer, 1)} {
+                    let word := mload(programPointer)
+                    let instruction  := byte(0, word)
+                    switch instruction
+                    case 0x2B {
+                        switch and(lt(add(programPointer, 3), programEnd), and(eq(byte(1, word), instruction), and(eq(byte(2, word), instruction), eq(byte(3, word), instruction))))
+                        case 0 {
+                            mstore8(add(programStart, programCounter), instruction)
+
+                        }
+                        case 1 {
+                            mstore8(add(programStart, programCounter), 0x4B)
+                            programPointer := add(programPointer, 3)
+                        }
+                        programCounter := add(programCounter, 1)
+                    }
+                    case 0x2D {
+                        switch and(lt(add(programPointer, 3), programEnd), and(eq(byte(1, word), instruction), and(eq(byte(2, word), instruction), eq(byte(3, word), instruction))))
+                        case 0 {
+                            mstore8(add(programStart, programCounter), instruction)
+
+                        }
+                        case 1 {
+                            mstore8(add(programStart, programCounter), 0x4D)
+                            programPointer := add(programPointer, 3)
+                        }
+                        programCounter := add(programCounter, 1)
+                    }
+                    case 0x3E {
+                        mstore8(add(programStart, programCounter), instruction)
+                        programCounter := add(programCounter, 1)
+                    }
+                    case 0x3C {
+                        mstore8(add(programStart, programCounter), instruction)
+                        programCounter := add(programCounter, 1)
+                    }
+                    case 0x2E {
+                        mstore8(add(programStart, programCounter), instruction)
+                        programCounter := add(programCounter, 1)
+                    }
+                    case 0x2C {
+                        mstore8(add(programStart, programCounter), instruction)
+                        programCounter := add(programCounter, 1)
+                    }
+                    case 0x5B {
+                        mstore8(add(programStart, programCounter), instruction)
+                        programCounter := add(programCounter, 1)
+                    }
+                    case 0x5D {
+                        mstore8(add(programStart, programCounter), instruction)
+                        programCounter := add(programCounter, 1)
+                    }
+                }
+                mstore(program, programCounter)
+                programEnd := add(programStart, programCounter)
+            }
+
+            let inputCounter := 0
+            let outputCounter := 0
+            let tapePointer := 0
+            for {let programPointer := programStart } lt(programPointer, programEnd) {programPointer := add(programPointer, 1)} {
+                switch byte(0, mload(programPointer))
+                case 0x2B {
+                    let dest := add(add(outputJumpCacheTape, 0x320), tapePointer)
+                    mstore8(dest, add(byte(0, mload(dest)), 1))
+                }
+                case 0x2D {
+                    let dest := add(add(outputJumpCacheTape, 0x320), tapePointer)
+                    mstore8(dest, sub(byte(0, mload(dest)), 1))
+                }
+                case 0x3E {
+                    tapePointer := add(tapePointer, 1)
+                }
+                case 0x3C {
+                    tapePointer := sub(tapePointer, 1)
+                }
+                case 0x2E {
+                    mstore8(add(add(outputJumpCacheTape, 0x20), outputCounter), byte(0, mload(add(add(outputJumpCacheTape, 0x320), tapePointer))))
+                    outputCounter := add(outputCounter, 1)
+                }
+                case 0x2C {
+                    mstore8(add(add(outputJumpCacheTape, 0x320), tapePointer), byte(0, mload(add(add(input, 0x20), inputCounter))))
+                    inputCounter := add(inputCounter, 1)
+                }
+                case 0x5B {
+                    if iszero(byte(0, mload(add(add(outputJumpCacheTape, 0x320), tapePointer)))){
+                        for {let i := add(outputJumpCacheTape, 0x120)} lt(i, add(outputJumpCacheTape, 0x320)) {i := add(i, 0x40)} {
+                            switch mload(i)
+                            case 0x0 {
+                                mstore(i, programPointer)
+                                let depth := 1
+                                for {let innerI := add(programPointer, 1)} lt(innerI, programEnd) {innerI := add(innerI, 1)} {
+                                    switch byte(0, mload(innerI))
+                                    case 0x5D {
+                                        depth := sub(depth, 1)
+                                        switch depth
+                                        case 0 {
+                                            mstore(add(i, 0x20), innerI)
+                                            programPointer := innerI
+                                            innerI := programEnd
+                                            i := add(outputJumpCacheTape, 0x320)
+                                        }
+                                    }
+                                    case 0x5B {
+                                        depth := add(depth, 1)
+                                    }
+                                }
+                            }
+                            default {
+                                if eq(mload(i), programPointer) {
+                                    programPointer := mload(add(i, 0x20))
+                                    i := add(outputJumpCacheTape, 0x320)
+                                }
+                            }
+                        }
+                    }
+                }
+                case 0x5D {
+                    if byte(0, mload(add(add(outputJumpCacheTape, 0x320), tapePointer))) {
+                        for {let i := add(outputJumpCacheTape, 0x140)} lt(i, add(outputJumpCacheTape, 0x320)) {i := add(i, 0x40)} {
+                            switch mload(i)
+                            case 0x0 {
+                                mstore(i, programPointer)
+                                let depth := 1
+                                for {let innerI := sub(programPointer, 1)} gt(innerI, programStart) {innerI := sub(innerI, 1)} {
+                                    switch byte(0, mload(innerI))
+                                    case 0x5B {
+                                        depth := sub(depth, 1)
+                                        switch depth
+                                        case 0 {
+                                            mstore(sub(i, 0x20), innerI)
+                                            programPointer := innerI
+                                            innerI := programStart
+                                            i := add(outputJumpCacheTape, 0x320)
+                                        }
+                                    }
+                                    case 0x5D {
+                                        depth := add(depth, 1)
+                                    }
+                                }
+                            }
+                            default {
+                                if eq(mload(i), programPointer) {
+                                    programPointer := mload(sub(i, 0x20))
+                                    i := add(outputJumpCacheTape, 0x320)
+                                }
+                            }
+                        }
+                    }
+                }
+                case 0x4B {
+                    let dest := add(add(outputJumpCacheTape, 0x320), tapePointer)
+                    mstore8(dest, add(byte(0, mload(dest)), 4))
+                }
+                case 0x4D {
+                    let dest := add(add(outputJumpCacheTape, 0x320), tapePointer)
+                    mstore8(dest, sub(byte(0, mload(dest)), 4))
+                }
+            }
+            mstore(outputJumpCacheTape, outputCounter)
+        }
+        return outputJumpCacheTape;
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

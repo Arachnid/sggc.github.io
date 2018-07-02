@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission eef486bb...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/hexdecoder">Hex decoder</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a>
+        <tr><th>Submitted at</th><td></td></tr>
+        <tr><th>Gas used</th><td>71892</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ *
+ * Author: Richard Moore &lt;me@ricmoo.com&gt;
+ * Date: May 23, 2018
+ */
+
+
+pragma solidity 0.4.24;
+
+contract HexDecoder {
+
+    /**
+     * @dev Decodes a hex-encoded input string, returning it in binary.
+     *
+     * Input strings may be of any length, but will always be a multiple of two
+     * bytes long, and will not contain any non-hexadecimal characters.
+     *
+     * @param input The hex-encoded input.
+     * @return The decoded output.
+     */
+
+    function decode(string input) pure public returns(bytes output) {
+        output = bytes(input);
+
+        assembly {
+          let offset := add(output, 32)
+          let length := mload(output)
+          let end := add(offset, length)
+
+          // The output length is half the input length
+          mstore(output, div(length, 2))
+
+          let outOffset := offset
+          for { } lt(offset, end) { } {
+
+            let data := mload(offset)
+
+            // For letters, the 7th bit is high; create 9 if set
+            let n0 := and(0x4040404040404040404040404040404040404040404040404040404040404040, data)
+            n0 := or(div(n0, 8), div(n0, 64))
+
+            // Take the lowest nibble from each ascii character
+            // 0-9: already the correct value
+            // A-F: add 9 to the value to offset A (1) -&gt; 10, etc
+            data := and(0x0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f, data)
+            data := add(n0, data)
+
+            // Shift all nibbles over to the left and odd nibbles into their neighbour
+            // (odd bytes become junk)
+            data := or(mul(data, 16), mul(data, 256))
+
+            mstore8(outOffset, byte(0, data))
+            mstore8(add(outOffset, 1), byte(2, data))
+            mstore8(add(outOffset, 2), byte(4, data))
+            mstore8(add(outOffset, 3), byte(6, data))
+            mstore8(add(outOffset, 4), byte(8, data))
+            mstore8(add(outOffset, 5), byte(10, data))
+            mstore8(add(outOffset, 6), byte(12, data))
+            mstore8(add(outOffset, 7), byte(14, data))
+            mstore8(add(outOffset, 8), byte(16, data))
+            mstore8(add(outOffset, 9), byte(18, data))
+            mstore8(add(outOffset, 10), byte(20, data))
+            mstore8(add(outOffset, 11), byte(22, data))
+            mstore8(add(outOffset, 12), byte(24, data))
+            mstore8(add(outOffset, 13), byte(26, data))
+            mstore8(add(outOffset, 14), byte(28, data))
+            mstore8(add(outOffset, 15), byte(30, data))
+
+            outOffset := add(outOffset, 16)
+
+            offset := add(offset, 0x20)
+          }
+        }
+    }
+}
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

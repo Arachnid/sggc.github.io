@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 53dccaa9...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/unique">Remove duplicate elements</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a>
+        <tr><th>Submitted at</th><td>2018-56-10</td></tr>
+        <tr><th>Gas used</th><td>413164</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity ^0.4.23;
+
+contract Unique {
+    /**
+     * @dev Removes all but the first occurrence of each element from a list of
+     *      integers, preserving the order of original elements, and returns the list.
+     *
+     * The input list may be of any length.
+     *
+     * @param input The list of integers to uniquify.
+     * @return The input list, with any duplicate elements removed.
+     */
+    
+    /*function uniquify(uint [] input) public pure returns(uint[] ret) {
+        // derp version
+        assembly {
+            if eq(calldatasize, 0x44) {
+                mstore(0x00, 0x20)
+                return(0x00, 0x40)
+            }
+            let arrayPointer := 0x00
+            let nextIndex := 0x00
+            let end := add(sub(calldatasize, 0x44), 0x140) // todo, optimize
+
+            calldatacopy(0x00, 0x44, sub(calldatasize, 0x44))
+
+            for {} lt(nextIndex, end) {} {
+                let val := mload(nextIndex)
+                let not_unique := 0
+                for {let j := 0} or(lt(j, end), not_unique) {j := add(j, 0x20)} {
+                    if and(eq(val, mload(j)), iszero(eq(j, nextIndex))) {
+                        not_unique := 1
+                    }
+                }
+                if iszero(not_unique) {
+                    mstore(arrayPointer, val)
+                    arrayPointer := add(arrayPointer, 0x20)
+                }
+            }
+        }
+    }
+
+    // hmm how can i improve.
+    // what about using the bloom filter as a 1st pass
+    // if the bloom filter does not return negative, we , hmm
+    */
+    // bloom filters, can I get a ghetto 512 bit filter?
+    // e.g. third byte determines whether first or second byte is used
+    function uniquify(uint[] input) public view returns(uint[] ret) {
+
+        assembly {
+            // hash map
+            if eq(calldatasize, 0x44) {
+                mstore(0x00, 0x20)
+                return(0x00, 0x40)
+            }
+            mstore(0x0, 1)
+            mstore(0x20, 2)
+            mstore(0x40, 4)
+            mstore(0x60, 8)
+            mstore(0x80, 16)
+            mstore(0xa0, 32)
+            mstore(0xc0, 64)
+            mstore(0xe0, 128)
+    
+            let nextIndex := 0x400
+            let arrayPointer := 0x400
+            let end := add(sub(calldatasize, 0x44), 0x400) // todo, optimize
+            /* let bloomFilterA := 0x00
+            let bloomFilterB := 0x00
+            let bloomFilterC := 0x00
+            let bloomFilterD := 0x00
+            let bloomFilterE := 0x00 */
+            calldatacopy(0x400, 0x44, sub(calldatasize, 0x44))
+            // 2453 bits and 4 hash functions
+            // let's try with 8 possible limbs
+            // 100 = end of hash lookup
+            // 100 - 120 = keccak256 scratch space
+            // 120 - 140 = bloom limb 1
+            // 140 - 160
+            // 160 - 180
+            // 180 - 1a0
+            // 1a0 - 1c0
+            // 1c0 - 1e0
+            // 1e0 - 200
+            // 200 - 220 = bloom limb 8
+            // 220 - rest = return data
+            let basicBloom := 0x00
+            let anotherBloom := 0x00
+            for {} lt(nextIndex, end) {} {
+                let i := mload(nextIndex)
+                mstore(0x120, i)
+                let h1 := keccak256(0x120, 0x20)
+                let limbA := and(h1, 0xf)
+                let limbB := and(byte(30, h1), 0xf)
+                let indexA := add(mul(limbA, 0x20), 0x140)
+                let indexB := add(mul(limbB, 0x20), 0x140)
+                let bitsA := mload(byte(add(limbA, 1), h1))
+                let bitsB := mload(byte(add(limbB, 16), h1))
+                let bitsC := mload(byte(8, h1))
+                let bitsD := mload(byte(13, h1))
+                if or(
+                    or(iszero(and(mload(indexA), bitsA)), iszero(and(anotherBloom, bitsD))),
+                    or(iszero(and(mload(indexB), bitsB)), iszero(and(basicBloom, bitsC)))
+                ) {
+                    mstore(arrayPointer, i)
+                    switch eq(limbA, limbB)
+                        case 1 {
+                            mstore(indexA, or(or(mload(indexA), bitsA), bitsB))
+                        }
+                        default {
+                            mstore(indexA, or(mload(indexA), bitsA))
+                            mstore(indexB, or(mload(indexB), bitsB))
+                        }
+                    basicBloom := or(basicBloom, bitsC)
+                    anotherBloom := or(anotherBloom, bitsD)
+                    arrayPointer := add(arrayPointer, 0x20)
+                }
+                // let h1 := mulmod(i, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F, not(0)) //totally not overkill // keccak256(0x120, 0x20)
+                /* let b1 := mload(and(i, 0xff))
+                let b2 := mload(byte(30, i))
+                let b3 := mload(byte(28, h1))
+                let b4 := mload(byte(32, h1))
+                let b5 := mload(byte(30, h1))
+                if or(
+                    iszero(and(bloomFilterA, b1)),
+                    or(
+                        iszero(and(bloomFilterB, b2)),
+                        or(
+                            iszero(and(bloomFilterC, b3)),
+                            or(
+                                iszero(and(bloomFilterD, b4)),
+                                iszero(and(bloomFilterE, b5))
+                            )
+                        )
+                    )
+                ) {
+                        mstore(arrayPointer, i)
+                        arrayPointer := add(arrayPointer, 0x20)
+                        bloomFilterA := or(bloomFilterA, b1)
+                        bloomFilterB := or(bloomFilterB, b2)
+                        bloomFilterC := or(bloomFilterC, b3)
+                        bloomFilterD := or(bloomFilterD, b4)
+                        bloomFilterE := or(bloomFilterE, b5)
+                } */
+                nextIndex := add(nextIndex, 0x20)
+            }
+            
+            let size := sub(arrayPointer, 0x400)
+            mstore(0x3c0, 0x20)
+            mstore(0x3e0, div(size, 0x20))
+            return(0x3c0, add(size, 0x40))
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

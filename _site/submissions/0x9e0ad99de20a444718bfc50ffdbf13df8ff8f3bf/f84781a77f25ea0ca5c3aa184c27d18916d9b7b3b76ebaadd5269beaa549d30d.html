@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission f84781a7...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/sort">Integer sorting</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/">0x9e0ad99de20a444...</a>
+        <tr><th>Submitted at</th><td>2018-38-18</td></tr>
+        <tr><th>Gas used</th><td>711814</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity 0.4.24;
+/*v1.1*/
+/*QuickSortarray*/
+contract Sort {
+    /**
+     * @dev Sorts a list of integers in ascending order.
+     *
+     * The input list may be of any length.
+     *
+     * @param input The list of integers to sort.
+     * @return The sorted list.
+     */
+    function sort(uint[] input) public pure returns(uint[]) {
+        /*v1.3*/
+        uint inputLen = input.length;
+        bool ordered = true;
+        bool inversedOrdered = true;
+
+        //Filter to avoid processing empty input array
+        if(inputLen == 0)
+            return input;
+        
+        //Detecting pattern scenario where the input is already ordered
+        uint n;
+        while(n &lt; inputLen-2){
+            if(input[n]&gt;input[n+1])
+            {
+                ordered = false;
+                break;
+            }    
+            n = n+4;
+        }
+        if(ordered)
+            return input;
+
+        n = 0;
+        //Detecting pattern scenario where the input is inversed ordered
+        while(n &lt; inputLen-2){
+            if(input[n]&lt;input[n+1])
+            {
+                inversedOrdered = false;
+                break;
+            }    
+            n = n+4;
+        }
+
+        if(inversedOrdered){
+            for(n = 0;n &lt; inputLen/2;n = n+2){
+                (input[n],input[inputLen-n-1]) = (input[inputLen-n-1],input[n]);
+                (input[n+1],input[inputLen-n-2]) = (input[inputLen-n-2],input[n+1]);
+            }
+            return input;
+        }   
+        
+        //Apply QuickSort algorithm with minor modifications in order to save GAS
+        quickSort(input, 0, inputLen - 1);
+        return input;
+    }
+
+    function quickSort(uint[] input, uint low, uint high) internal pure {
+        uint i = low;
+        uint j = high;
+        uint pivot = input[(i + (j+1))/2];
+        while (i &lt;= j) {
+            while (input[i] &lt; pivot) i++;
+            while (pivot &lt; input[j]) j--;
+            if (i &lt;= j) {
+                if(i!=j)
+                    (input[j], input[i]) = (input[i], input[j]);
+                i++;
+                j--;
+            }
+        }
+        if (low &lt; j)
+            quickSort(input, low, j);
+        if (i &lt; high)
+            quickSort(input, i, high);
+    }
+}
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

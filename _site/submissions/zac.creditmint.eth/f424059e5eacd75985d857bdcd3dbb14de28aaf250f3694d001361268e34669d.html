@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission f424059e...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/hexdecoder">Hex decoder</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a>
+        <tr><th>Submitted at</th><td>2018-43-26</td></tr>
+        <tr><th>Gas used</th><td>18634</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity ^0.4.23;
+
+
+/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * Author: Zachary Williamson
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+contract HexDecoder {
+    /**
+     * @dev Decodes a hex-encoded input string, returning it in binary.
+     *
+     * Input strings may be of any length, but will always be a multiple of two
+     * bytes long, and will not contain any non-hexadecimal characters.
+     *
+     * @return The decoded output.
+     */
+
+    // Variable declarations:
+    // w        current word of input string we're operating on
+    // n        calldata pointer to next 0x20 bytes of input data
+    // s        number of output bytes
+
+    function decode(string) external view returns(bytes) {
+        assembly {
+            // first, let's check there's some calldata to operate on
+            0x24 calldataload has_data jumpi
+            0x40 0x00 return
+        has_data:
+            // chuck this onto the stack at the start
+            // pushing it onto stack in main loop costs 6 gas per operation instead of 3
+            // because optimizer converts this into PUSH1(0x0) NOT.
+            0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+            // N.B: could reduce gas cost to *create* contract substantially
+            // by pushing all of the 32 byte constants onto stack before start of iteration
+            // and duplicating, but that increases runtime costs by 3 gas per constant!
+
+            // put 0x44 on stack, we use this as our calldata pointer to load next input word
+            0x44
+            // we load our next word in at end of main loop so we can use it to test
+            // against continuing loop. So load a word onto stack before we start
+            dup1 calldataload
+
+            loop_start:
+                // stack state = w n -1
+
+                // current word is 256-bit chunk of utf-8 input
+                // we want to:
+                // a: convert word into format 'abbccddeeffgghhiijjkkllmm...'
+                //    where each letter represents the least significant nibble of every byte
+                // b: add '9' to every nibble that came from an alphanumeric char
+                dup3
+                // isolate the 7th bit of every byte
+                dup2 0x4040404040404040404040404040404040404040404040404040404040404040 and
+                // if an alphanumeric char, this will be set to high
+                // convert from 0100 0000
+                //           to 0000 1001
+                // by multiplying by (2^253 + 2^250) mod -1
+                0x2400000000000000000000000000000000000000000000000000000000000000 mulmod
+                add // add back into w
+                // NB: can do this with a mul operation instead of mulmod but costs the same:
+                // requires isolating 5th bit and inverting (3 gas),
+                // multiplying by (2^0 + 2^3 + 2^4 + 2^7) and adding into word
+                // after nibble shift below (requires a swap, 3 gas).
+
+                // now that we've added alphanumeric quotient into least
+                // significant nibble mask out most significant nibble of every byte
+                0x0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f and
+                
+                // mul by (2^4 + 2^8): shifts each nibble up by one and copies it
+                // into next significant nibble (which we masked to be 0)
+                272 mul
+
+                // mask off every other byte, leaving: 0xab00cd00ef00gh00ij...
+                0xff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00 and
+                // mul by (2^0 + 2^8) to create: 0xabcdcdefefghghijij...
+                257 mul
+                // mask off every other 2 bytes, leaving: 0xabcd0000efgh0000ijkl0000mnop
+                0xffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000 and
+                // mul by (2^0 + 2^16) to create: 0xabcdefgh efghijkl ijklmnop mnopqrst ...
+                65537 mul
+                // mask off every 4 bytes, leaving: 0xabcdefgh 00000000 ijklmnop 00000000 qrstuvwx ...
+                0xffffffff00000000ffffffff00000000ffffffff00000000ffffffff00000000 and
+                // mul by (2^0 + 2^32) to create: 0xabcdefghijklmnop ijklmnopqrstuvwx qrstuvwxyza'b'c'd'e'f'
+                4294967297 mul
+                // mask off every 8 bytes
+                0xffffffffffffffff0000000000000000ffffffffffffffff0000000000000000 and
+                // mul by (2^0 + 2^64) to create a 16 byte packed representation of input
+                18446744073709551617 mul
+
+                // we use msize as our free memory pointer, hon hon.
+                // offset by 0x20 so that this word does not increase msize
+                // n.b. can avoid subtraction by leaving *previous* msize value on stack, but that
+                // ends up requiring two swap ops (one to get msize in front of value to store, another to
+                // increase calldata pointer)
+                0x20 msize sub mstore
+
+                // repeat with next calldata word, so we can combine into single 'mstore' op
+                // this allows us to be sneaky and use 'msize' as our pointer to next word
+                // in output array. Costs only 2 gas and is self-incrementing, saving
+                // 7 gas per word when compared with keeping a pointer on the stack and
+                // manually incrementing. We also cut conditional jumps in half
+                0x20 dup2 add calldataload
+                dup3
+                dup2 0x4040404040404040404040404040404040404040404040404040404040404040 and
+                0x2400000000000000000000000000000000000000000000000000000000000000 mulmod add
+                0x0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f and
+                272 mul
+                0xff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00 and 257 mul
+                0xffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000 and 65537 mul
+                0xffffffff00000000ffffffff00000000ffffffff00000000ffffffff00000000 and 4294967297 mul
+                0xffffffffffffffff0000000000000000ffffffffffffffff0000000000000000 and
+                18446744073709551617 mul
+                // store result offset by 0x10 bytes, to join up with previous word
+                // this will increase msize by 0x20
+                0x10 msize sub mstore
+                0x40 add // increase calldata pointer
+                dup1 calldataload // load next word of calldata
+
+                // we want to skip out of loop when we've iterated over input string
+                // instead of keeping track of an endpoint, just duplicate the loaded calldata
+                // if != 0 we need to keep looping, so we can use directly for our conditional jump test
+                dup1
+                loop_start jumpi
+
+            // loop over, we've run out of calldata
+            // get the number of bytes in input array and divide by 2 to get # bytes in output array
+            2 0x24 calldataload div
+
+            // we operate on 32 byte chunks, it the input data not
+            // divisible by 32, there will be a bunch of junk
+            // at the end of the aray; we need to zero out that data
+            // Solidity boilerplate will cause msize to start at 0x60 when our loop begins
+            // so first byte of data is stored at 0x40
+            // add # output bytes to 0x40, and store 0x0 at that position to zero out junk
+            0x00 dup2 0x40 add mstore
+            // we want # output bytes to be in position 0x20 in order for our dynamic array to be correctly formatted
+            0x20 mstore
+            // finally store 0x20 at 0x00, to indicate start of array
+            0x20 0x00 mstore
+            // calculate final array size and exit
+            0x20 msize sub 0x00 return
+
+        // compiler throws 'unbalanced stack' errors because of calldata, calldata pointer and '-1' still lurking on the stack
+        // these opcodes will never get run but heyho what can you do
+        pop pop pop
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

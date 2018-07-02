@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 5908c46e...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/unique">Remove duplicate elements</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a>
+        <tr><th>Submitted at</th><td>2018-35-31</td></tr>
+        <tr><th>Gas used</th><td>254607</td></tr>
+    </table>
+    <pre><code class="language-solidity">contract Unique {
+    function uniquify(uint[] /* input */) public pure returns(uint[]) {
+        assembly {
+
+            // Memory
+            //   - 256 x 256 bit values for filter
+            //   - output data dynlink0 (32)
+            //   - output data size (32 bytes)
+            //   - input data (re-used as output data)
+            let smallFilter := mload(0x40)
+            let bloomFilter := add(smallFilter, 256)
+            let data := add(bloomFilter, 8192)
+
+            calldatacopy(data, 4, sub(calldatasize, 4))
+            mstore(data, 32)
+
+            // WARNING: Should actually load the pointer first
+            let length := mload(add(data, 32))
+
+            // Trivially unique
+            if lt(length, 2) {
+                mstore(add(data, 32), length)
+                return(data, add(length, add(64, mul(length, 32))))
+            }
+
+            let offset := add(data, 64)
+            let outputOffset := offset
+            let end := add(offset, mul(length, 32))
+            length := 0
+            for { } lt(offset, end) { } {
+
+                let v := mload(offset)
+                let unique := 0
+
+                // Small number; we have a custom filter for those
+                if lt(v, 256) {
+                    let index := add(smallFilter, v)
+                    let check := byte(0, mload(index))
+                    if iszero(check) {
+                        unique := 1
+                        mstore8(index, 0x01)
+                    }
+                }
+
+                // Fallback onto the bloom filter
+                if gt(v, 255) {
+                    let index := add(bloomFilter, and(v, 0xfff))
+                    let check := mload(index)
+
+                    let test := eq(and(check, v), v)
+
+                    // Bloom filter miss (unique!)
+                    if iszero(test) {
+                        unique := 1
+                        mstore(index, or(check, v))
+                    }
+
+                    if test {
+                        // Scan existing entries for v
+                        unique := 1
+                        let scanOffset := add(data, 64)
+                        for { } lt(scanOffset, outputOffset) { } {
+                            if eq(mload(scanOffset), v) {
+                                unique := 0
+                                scanOffset := outputOffset
+                            }
+                            scanOffset := add(scanOffset, 32)
+                        }
+                    }
+                }
+
+                if unique {
+                    mstore(outputOffset, v)
+                    outputOffset := add(outputOffset, 32)
+                    length := add(length, 1)
+                }
+
+                offset := add(offset, 32)
+            }
+
+            mstore(add(data, 32), length)
+            return(data, sub(offset, data))
+        }
+    }
+}
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

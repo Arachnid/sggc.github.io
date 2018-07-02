@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 077ff632...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/sort">Integer sorting</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a>
+        <tr><th>Submitted at</th><td>2018-37-30</td></tr>
+        <tr><th>Gas used</th><td>653513</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ *
+ * Author: Greg Hysen (@hysz)
+ * Date: June, 2018
+ */
+
+pragma solidity 0.4.24;
+
+contract Sort {
+
+    event RemoveBeforeSubmission(uint i);
+
+    /**
+     * @dev Sorts a list of integers in ascending order.
+     *
+     * The input list may be of any length.
+     *
+     * @param input The list of integers to sort.
+     * @return The sorted list.
+     */
+     function sort(uint[] input)
+      public
+      pure
+      returns(uint[])
+    {
+        if(input.length == 0) return input;
+        quickSort(input, 0, input.length - 1, input[0], input[input.length - 1]);
+        return input;
+     }
+
+        function quickSort(
+            uint[] input,
+            uint lo,
+            uint hi,
+            uint loElem,
+            uint hiElem
+        )
+         internal
+         pure
+        {
+            // Pivot (Median of 3)
+            uint i = uint((hi+lo)/2); // pivot index
+            uint pivot = input[i];
+            if(loElem &gt;= pivot) { // [pivot, loElem] [hiElem]
+                if(loElem &lt;= hiElem) {
+                    // [pivot, loElem, hiElem]
+                    // Only swap pivot and loElem
+                    input[lo] = pivot;
+                    input[i] = loElem;
+                    (loElem, pivot) = (pivot, loElem);
+                } else {
+                    // [pivot, hiElem, loElem] or [hiElem, pivot, loElem]
+                    if(hiElem &gt;= pivot) {
+                        // [pivot, hiElem, loElem]
+                        input[lo] = pivot;
+                        input[i] = hiElem;
+                        input[hi] = loElem;
+                        (loElem, pivot, hiElem) = (pivot, hiElem, loElem);
+                    } else {
+                        // [hiElem, pivot, loElem]
+                        input[lo] = hiElem;
+                        input[hi] = loElem;
+                        (loElem, hiElem) = (hiElem, loElem);
+                    }
+                }
+            } else {// if(loElem &lt; pivot) { // [loElem, pivot] [hiElem]
+                if(pivot &gt;= hiElem) {
+                    // [loElem, hiElem, pivot] or [hiElem, loElem, pivot]
+                    if(hiElem &gt;= loElem) {
+                        // [loElem, hiElem, pivot]
+                        input[i] = hiElem;
+                        input[hi] = pivot;
+                        (pivot, hiElem) = (hiElem, pivot);
+                    } else {
+                        // [hiElem, loElem, pivot]
+                        input[lo] = hiElem;
+                        input[i] =  loElem;
+                        input[hi] = pivot;
+                        (loElem, pivot, hiElem) = (hiElem, loElem, pivot);
+                    }
+                } else {
+                    // [loElem, pivot, hiElem]
+                    // Do nothing
+                }
+            }
+
+            // Hoare pivot algorithm
+            // Note we skip the lo/hi elements because
+            // we already know they're in the correct position.
+            uint iElem;
+            uint jElem;
+            i = lo;
+            uint j = hi;
+            while(true) {
+                while((iElem=input[uint(++i)]) &lt;= pivot) {}
+                while((jElem=input[uint(--j)]) &gt;= pivot) {}
+
+                if(i &gt;= j) {
+                    // Sort
+                    if(j - lo &lt;= 7) insertionSort(input, lo, j);
+                    else            quickSort(input, lo, j, loElem, jElem);
+
+                    if(hi - i &lt;= 7) return insertionSort(input, i, hi);
+                                    return  quickSort(input, i, hi, iElem, hiElem);
+                }
+                input[uint(i)] = jElem;
+                input[uint(j)] = iElem;
+            }
+        }
+
+        function insertionSort(uint[] input, uint lo, uint hi)
+            private
+            pure
+        {
+            // Base case
+            if(lo == hi++) return;
+
+            // If within threshold, run insertion sort instead.
+
+
+
+            uint a = input[lo];
+            uint i = lo + 1;
+            // 1
+            uint b = input[i];
+                if(a &gt; b) {
+                    (a, b) = (b, a);
+                }
+            if(++i == hi) {
+                input[lo++] = a;
+                input[lo++] = b;
+                return;
+            }
+
+            // 2
+            uint c = input[i];
+                if(b &gt; c) {
+                    (b, c) = (c, b);
+                    if(a &gt; b) {
+                        (a, b) = (b, a);
+                    }
+                }
+            if(++i == hi) {
+                input[lo++] = a;
+                input[lo++] = b;
+                input[lo++] = c;
+                return;
+            }
+
+            // 3
+            uint d = input[i];
+                if(c &gt; d) {
+                    (c, d) = (d, c);
+                    if(b &gt; c) {
+                        (b, c) = (c, b);
+                        if(a &gt; b) {
+                            (a, b) = (b, a);
+                        }
+                    }
+                }
+            if(++i == hi) {
+                input[lo++] = a;
+                input[lo++] = b;
+                input[lo++] = c;
+                input[lo++] = d;
+                return;
+            }
+
+            // 4
+            uint e = input[i];
+                if(d &gt; e) {
+                    (d, e) = (e, d);
+                    if(c &gt; d) {
+                        (c, d) = (d, c);
+                        if(b &gt; c) {
+                            (b, c) = (c, b);
+                            if(a &gt; b) {
+                                (a, b) = (b, a);
+                            }
+                        }
+                    }
+                }
+            if(++i == hi) {
+                input[lo++] = a;
+                input[lo++] = b;
+                input[lo++] = c;
+                input[lo++] = d;
+                input[lo++] = e;
+                return;
+            }
+
+            // 5
+            uint f = input[i];
+                if(e &gt; f) {
+                    (e, f) = (f, e);
+                    if(d &gt; e) {
+                        (d, e) = (e, d);
+                        if(c &gt; d) {
+                            (c, d) = (d, c);
+                            if(b &gt; c) {
+                                (b, c) = (c, b);
+                                if(a &gt; b) {
+                                    (a, b) = (b, a);
+                                }
+                            }
+                        }
+                    }
+                }
+            if(++i == hi) {
+                input[lo++] = a;
+                input[lo++] = b;
+                input[lo++] = c;
+                input[lo++] = d;
+                input[lo++] = e;
+                input[lo++] = f;
+                return;
+            }
+
+            // 6
+            uint g = input[i];
+                if(f &gt; g) {
+                    (f, g) = (g, f);
+                    if(e &gt; f) {
+                        (e, f) = (f, e);
+                        if(d &gt; e) {
+                            (d, e) = (e, d);
+                            if(c &gt; d) {
+                                (c, d) = (d, c);
+                                if(b &gt; c) {
+                                    (b, c) = (c, b);
+                                    if(a &gt; b) {
+                                        (a, b) = (b, a);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            if(++i == hi) {
+                input[lo++] = a;
+                input[lo++] = b;
+                input[lo++] = c;
+                input[lo++] = d;
+                input[lo++] = e;
+                input[lo++] = f;
+                input[lo++] = g;
+                return;
+            }
+
+            // 7
+            uint h = input[i];
+                if(g &gt; h) {
+                    (g, h) = (h, g);
+                    if(f &gt; g) {
+                        (f, g) = (g, f);
+                        if(e &gt; f) {
+                            (e, f) = (f, e);
+                            if(d &gt; e) {
+                                (d, e) = (e, d);
+                                if(c &gt; d) {
+                                    (c, d) = (d, c);
+                                    if(b &gt; c) {
+                                        (b, c) = (c, b);
+                                        if(a &gt; b) {
+                                            (a, b) = (b, a);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            if(++i == hi) {
+                input[lo++] = a;
+                input[lo++] = b;
+                input[lo++] = c;
+                input[lo++] = d;
+                input[lo++] = e;
+                input[lo++] = f;
+                input[lo++] = g;
+                input[lo++] = h;
+                return;
+            }
+        }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

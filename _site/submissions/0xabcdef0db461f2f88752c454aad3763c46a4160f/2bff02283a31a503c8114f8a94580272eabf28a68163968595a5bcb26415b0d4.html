@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 2bff0228...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/hexdecoder">Hex decoder</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/">0xabcdef0db461f2f...</a>
+        <tr><th>Submitted at</th><td>2018-15-03</td></tr>
+        <tr><th>Gas used</th><td>1384491</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity 0.4.24;
+
+contract HexDecoder {
+    /**
+     * @dev Decodes a hex-encoded input string, returning it in binary.
+     *
+     * Input strings may be of any length, but will always be a multiple of two
+     * bytes long, and will not contain any non-hexadecimal characters.
+     *
+     * @param input The hex-encoded input.
+     * @return The decoded output.
+     */
+    function decode(string input) public pure returns(bytes) {
+        bytes memory inBytes = bytes(input);
+        uint outLen = inBytes.length / 2;
+        if (outLen == 0) {
+            return;
+        }
+        bytes memory outBytes = new bytes(outLen);
+        if (outLen &lt;= 32) {
+            decodeFew(inBytes, outBytes);
+        } else if (outLen &lt;= 512) {
+            decodeMore(inBytes, outBytes);
+        } else {
+            decodeMost(inBytes, outBytes);
+        }
+        return outBytes;
+    }
+
+    function decodeFew(bytes memory inBytes, bytes memory outBytes) internal pure {
+        uint outLen = outBytes.length;
+        while (outLen != 0) {
+            outLen -= 1;
+            byte low = inBytes[outLen*2+1];
+            byte high = inBytes[outLen*2];
+            outBytes[outLen] =
+                byte(
+                    ((low &amp; 0x10) == 0 ? 0x9 : 0x0) + uint8(low &amp; 0x0f)
+                    + (((high &amp; 0x10) == 0 ? 0x9 : 0x0) + uint8(high &amp; 0x0f)) * 16);
+        }
+    }
+
+    function decodeMore(bytes memory inBytes, bytes memory outBytes) internal pure {
+        byte[103] memory dict = [
+            byte(0),
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+            0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f];
+        uint outLen = outBytes.length;
+        while (outLen != 0) {
+            outLen -= 1;
+            outBytes[outLen] = (dict[uint(inBytes[outLen*2])] &lt;&lt; 4)
+                | dict[uint(inBytes[outLen*2+1])];
+        }
+    }
+
+    function decodeMost(bytes memory inBytes, bytes memory outBytes) internal pure {
+        byte[103] memory dictLow = [
+            byte(0),
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+            0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f];
+        byte[103] memory dictHigh = [
+            byte(0),
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80,
+            0x90, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0xa0, 0xb0, 0xc0, 0xd0, 0xe0, 0xf0, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0xa0, 0xb0, 0xc0, 0xd0, 0xe0, 0xf0];
+        uint outLen = outBytes.length;
+        while (outLen != 0) {
+            outLen -= 1;
+            outBytes[outLen] = dictHigh[uint(inBytes[outLen*2])]
+                | dictLow[uint(inBytes[outLen*2+1])];
+        }
+    }
+}
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

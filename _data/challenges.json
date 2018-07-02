@@ -1,0 +1,22 @@
+{
+    "Sort": {
+        "title": "Integer sorting",
+        "description": "Sort a list of integers into ascending order."
+    },
+    "BrainFuck": {
+        "title": "BrainFuck interpreter",
+        "description": "Implement an interpreter for the BrainFuck esoteric language."
+    },
+    "HexDecoder": {
+        "title": "Hex decoder",
+        "description": "Decode hex-encoded binary data."
+    },
+    "IndexOf": {
+        "title": "String search",
+        "description": "Return the index of the first match of a substring in a string."
+    },
+    "Unique": {
+        "title": "Remove duplicate elements",
+        "description": "Given a list, remove duplicate elements, while preserving the order of the elements."
+    }
+}

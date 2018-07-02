@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 88e289e0...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/hexdecoder">Hex decoder</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0x31efd75bc0b5fbafc6015bd50590f4fdab6a3f22/">0x31efd75bc0b5fba...</a>
+        <tr><th>Submitted at</th><td>2018-35-10</td></tr>
+        <tr><th>Gas used</th><td>1109151</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+ // submitted : 2900991 gas
+ // improved :  1887762 gas
+ //             2036330
+ //             2018438
+ //             1416217
+ //             1415621
+ //             1263823
+ //             2210934
+ //             1230254 
+
+
+pragma solidity 0.4.24;
+
+contract HexDecoder {
+
+    function mkb(uint len) internal pure returns (bytes b) {
+        b = new bytes(len);
+    }
+
+    /**
+     * @dev Decodes a hex-encoded input string, returning it in binary.
+     *
+     * Input strings may be of any length, but will always be a multiple of two
+     * bytes long, and will not contain any non-hexadecimal characters.
+     *
+     * @param input The hex-encoded input.
+     * @return The decoded output.
+     */
+    function decode(string input) public pure returns(bytes output) {
+        uint len = bytes(input).length &gt;&gt; 1;
+        //bytes memory b = bytes(input);
+        output = mkb(len);
+        uint i = 0;
+        uint pos;
+        if (len &gt; 60) {
+            byte[103] memory lookup;
+            byte[103] memory lookdown;
+            lookdown[0x31] = 1;
+            lookdown[0x32] = 2;
+            lookdown[0x33] = 3;
+            lookdown[0x34] = 4;
+            lookdown[0x35] = 5;
+            lookdown[0x36] = 6;
+            lookdown[0x37] = 7;
+            lookdown[0x38] = 8;
+            lookdown[0x39] = 9;
+            lookdown[0x41] = 0xa;
+            lookdown[0x42] = 0xb;
+            lookdown[0x43] = 0xc;
+            lookdown[0x44] = 0xd;
+            lookdown[0x45] = 0xe;
+            lookdown[0x46] = 0xf;
+            lookdown[0x61] = 0xa;
+            lookdown[0x62] = 0xb;
+            lookdown[0x63] = 0xc;
+            lookdown[0x64] = 0xd;
+            lookdown[0x65] = 0xe;
+            lookdown[0x66] = 0xf;
+
+            lookup[0x31] = 0x10;
+            lookup[0x32] = 0x20;
+            lookup[0x33] = 0x30;
+            lookup[0x34] = 0x40;
+            lookup[0x35] = 0x50;
+            lookup[0x36] = 0x60;
+            lookup[0x37] = 0x70;
+            lookup[0x38] = 0x80;
+            lookup[0x39] = 0x90;
+            lookup[0x41] = 0xa0;
+            lookup[0x42] = 0xb0;
+            lookup[0x43] = 0xc0;
+            lookup[0x44] = 0xd0;
+            lookup[0x45] = 0xe0;
+            lookup[0x46] = 0xf0;
+            lookup[0x61] = 0xa0;
+            lookup[0x62] = 0xb0;
+            lookup[0x63] = 0xc0;
+            lookup[0x64] = 0xd0;
+            lookup[0x65] = 0xe0;
+            lookup[0x66] = 0xf0;
+
+
+
+            while (pos &lt; len) {
+                output[pos++] = lookdown[uint(bytes(input)[i++])] | lookup[uint(bytes(input)[i++])];
+            }
+
+            return;
+        }
+        uint8 c;
+        uint8 total;
+        while (pos &lt; len) {
+            total = uint8(bytes(input)[i++]);
+            if (total &lt; 0x40) 
+                total -= 0x30;
+            else if (total &lt; 0x60) 
+                total -= 0x37;
+            else 
+                total -= 0x37;
+            total = total &lt;&lt; 4;
+            c = uint8(bytes(input)[i++]);
+            if (c &lt; 0x40) 
+                total += c - 0x30;
+            else if (c &lt; 0x60) 
+                total += c - 0x37;
+            else 
+                total += c - 0x57;
+            output[pos++] = byte(total);
+        }
+    }
+
+    event Loggit(bytes b);
+
+    function test(string s) public {
+        bytes memory b = decode(s);
+        emit Loggit(b);
+    }
+}
+// 20 1690706
+// 0x8f6288d5
+// 0000000000000000000000000000000000000000000000000000000000000020
+// 0000000000000000000000000000000000000000000000000000000000000004
+// 3132333400000000000000000000000000000000000000000000000000000000
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

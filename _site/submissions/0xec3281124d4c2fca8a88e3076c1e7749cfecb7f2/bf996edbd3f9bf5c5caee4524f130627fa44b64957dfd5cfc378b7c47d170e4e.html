@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission bf996edb...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/sort">Integer sorting</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0xec3281124d4c2fca8a88e3076c1e7749cfecb7f2/">0xec3281124d4c2fc...</a>
+        <tr><th>Submitted at</th><td>2018-54-08</td></tr>
+        <tr><th>Gas used</th><td>541556</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity 0.4.24;
+
+
+contract Sort {
+
+    function sort(uint[] input) public pure returns(uint[]) {
+        if (input.length == 0)
+            return;
+        uint arrayStart = 0;
+        assembly {
+            arrayStart := add(input, 0x20)
+        }
+        sort(arrayStart, input, 0, (input.length-1));
+        return input;
+    }
+
+    function sort(uint arrayStart, uint[] arr, uint left, uint right) internal pure {
+        uint i = left*32;
+        uint j = right*32;
+        uint pivot = 0;
+
+        assembly {
+            pivot := mload(add(arrayStart, mul(0x20, add(left, div(sub(right, left), 2)))))
+            for {} iszero(gt(i, j)) {} {
+                for {} lt(mload(add(arrayStart, i)), pivot) {} {
+                    i := add(i, 0x20)
+                }
+
+                for {} lt(pivot, mload(add(arrayStart, j))) {} {
+                    j := sub(j, 0x20)
+                }
+                switch gt(i, j)
+                case 0 {
+                    let iLoc := add(arrayStart, i)
+                    let jLoc := add(arrayStart, j)
+                    let temp := mload(iLoc)
+                    mstore(iLoc, mload(jLoc))
+                    mstore(jLoc, temp)
+                    i := add(i, 0x20)
+                    j := sub(j, 0x20)
+                }
+            }
+        }
+        if (left &lt; j/32)
+            sort(arrayStart, arr, left, j/0x20);
+        if (i/32 &lt; right)
+            sort(arrayStart, arr, i/0x20, right);
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 0d0ad0a0...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/indexof">String search</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a>
+        <tr><th>Submitted at</th><td>2018-52-26</td></tr>
+        <tr><th>Gas used</th><td>96086</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Conshift.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ *
+ * Author: Greg Hysen (@hysz)
+ * Date: June 2018
+ * Description: indexOf using Boyer-Moore algorithm w bad character heuristic.
+ */
+
+pragma solidity 0.4.24;
+
+contract IndexOf {
+    event E(int);
+    /**
+     * @dev Returns the index of the first occurrence of `needle` in `haystack`,
+     *      or -1 if `needle` is not found in `haystack`.
+     *
+     * Input strings may be of any length &lt;2^255.
+     *
+     * @param haystack The string to search.
+     * @param needle The string to search for.
+     * @return The index of `needle` in `haystack`, or -1 if not found.
+     */
+    function indexOf(string haystack, string needle)
+        public
+        pure
+        returns(int)
+    {
+        int256 haystackLength = int(bytes(haystack).length);
+        int256 needleLength = int(bytes(needle).length);
+        if(needleLength &gt; haystackLength) return -1;
+        if(needleLength == 0) return 0;
+        if(needleLength == 1) {
+            uint needleChar = uint(bytes(needle)[0]);
+            for(uint idx = 0; idx &lt; uint(haystackLength); idx++) {
+                if(needleChar == uint(bytes(haystack)[idx])) return int256(idx);
+            }
+        }
+
+        return indexOf(haystack, needle, haystackLength, needleLength);
+    }
+
+    function indexOf(string haystack, string needle, int256 haystackLength, int256 needleLength)
+        public
+        pure
+        returns(int)
+    {
+        // Create badchar table
+        int256[256] memory badchar;
+        int i;
+        while(i &lt; needleLength) {
+            badchar[uint(bytes(needle)[uint(i++)])] = i+1;
+        }
+
+        int maxNeedleIndex = needleLength-1;
+        int256 haystackOffset;
+        int maxHaystackOffset = (haystackLength - needleLength);
+        uint last;
+        int shift;
+        int256 needleIndex;
+        int tmp;
+        while(true) {
+            needleIndex = maxNeedleIndex;
+            while(uint(bytes(needle)[uint(needleIndex)]) == (last = uint(bytes(haystack)[uint(haystackOffset + needleIndex)]))) {
+                if(--needleIndex == -1) return haystackOffset;
+            }
+
+            // Handling each case individually saves ~10k gas.
+            if((tmp = badchar[uint(last)]) != 0) {
+                if((shift = needleIndex - tmp) &gt; 2) {
+                    if((haystackOffset += shift) &gt; maxHaystackOffset) return -1;
+                } else {
+                    if(++haystackOffset &gt; maxHaystackOffset) return -1;
+                }
+            } else {
+                if(needleIndex != -1) {
+                    if((haystackOffset += needleIndex + 2) &gt; maxHaystackOffset) return -1;
+                } else {
+                    if(++haystackOffset &gt; maxHaystackOffset) return -1;
+                }
+            }
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

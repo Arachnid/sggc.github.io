@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 4796a35e...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/sort">Integer sorting</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/cottenio.eth/">cottenio.eth</a>
+        <tr><th>Submitted at</th><td>2018-55-26</td></tr>
+        <tr><th>Gas used</th><td>2706092</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity 0.4.24;
+
+contract Sort {
+    /**
+     * @dev Sorts a list of integers in ascending order.
+     *
+     * The input list may be of any length.
+     * Simple MergeSort BENCHMARK
+     * Adapted from: https://www.geeksforgeeks.org/merge-sort/
+     *
+     * @param input The list of integers to sort.
+     * @return The sorted list.
+     */
+    function sort(uint[] input) public pure returns(uint[]) {
+        uint n = input.length;
+
+        if (n &lt; 2) {
+            return input;
+        }
+
+        for (uint i = 0; i &lt; 98; i++) {
+
+        }
+
+        sort(input, 0, n-1);
+
+        return input;
+    }
+
+    function sort(uint[] arr, uint left, uint right) pure internal {
+        if (left &lt; right) {
+            uint middle = (left + right) / 2;
+            sort(arr, left, middle);
+            sort(arr, middle+1, right);
+            merge(arr, left, middle, right);
+        }
+    }
+
+    function merge(uint[] arr, uint left, uint middle, uint right) pure internal {
+        uint n1 = middle - left + 1;
+        uint n2 = right - middle;
+
+        uint[] memory LEFT =  new uint[](n1);
+        uint[] memory RIGHT = new uint[](n2);
+
+        for (uint i = 0; i &lt; n1; ++i) {
+            LEFT[i] = arr[left + i];
+        }
+
+        for (uint j = 0; j &lt; n2; ++j) {
+            RIGHT[j] = arr[middle + j + 1];
+        }
+
+        uint ii = 0;
+        uint jj = 0;
+        uint kk = left;
+
+        while (ii &lt; n1 &amp;&amp; jj &lt; n2) {
+            if (LEFT[ii] &lt;= RIGHT[jj]) {
+                arr[kk] = LEFT[ii];
+                ii++;
+            } else {
+                arr[kk] = RIGHT[jj];
+                jj++;
+            }
+
+            kk++;
+        }
+
+        while (ii &lt; n1) {
+            arr[kk] = LEFT[ii];
+            ii++;
+            kk++;
+        }
+
+        while (jj &lt; n2) {
+            arr[kk] = RIGHT[jj];
+            jj++;
+            kk++;
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

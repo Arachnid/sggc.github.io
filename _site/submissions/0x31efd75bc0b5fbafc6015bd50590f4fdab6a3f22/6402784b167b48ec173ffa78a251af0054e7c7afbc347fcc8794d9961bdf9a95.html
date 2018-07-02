@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 6402784b...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/hexdecoder">Hex decoder</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0x31efd75bc0b5fbafc6015bd50590f4fdab6a3f22/">0x31efd75bc0b5fba...</a>
+        <tr><th>Submitted at</th><td>2018-20-08</td></tr>
+        <tr><th>Gas used</th><td>1416217</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+ // submitted : 2900991 gas
+ // improved :  1887762 gas
+ //             2036330
+ //             2018438
+
+pragma solidity 0.4.24;
+
+contract HexDecoder {
+
+    function mkb(uint len) internal pure returns (bytes b) {
+        b = new bytes(len);
+    }
+
+    /**
+     * @dev Decodes a hex-encoded input string, returning it in binary.
+     *
+     * Input strings may be of any length, but will always be a multiple of two
+     * bytes long, and will not contain any non-hexadecimal characters.
+     *
+     * @param input The hex-encoded input.
+     * @return The decoded output.
+     */
+    function decode(string input) public pure returns(bytes output) {
+        uint[256] memory lookup;
+        lookup[0x31] = 1;
+        lookup[0x32] = 2;
+        lookup[0x33] = 3;
+        lookup[0x34] = 4;
+        lookup[0x35] = 5;
+        lookup[0x36] = 6;
+        lookup[0x37] = 7;
+        lookup[0x38] = 8;
+        lookup[0x39] = 9;
+        lookup[0x41] = 0xa;
+        lookup[0x42] = 0xb;
+        lookup[0x43] = 0xc;
+        lookup[0x44] = 0xd;
+        lookup[0x45] = 0xe;
+        lookup[0x46] = 0xf;
+        lookup[0x61] = 0xa;
+        lookup[0x62] = 0xb;
+        lookup[0x63] = 0xc;
+        lookup[0x64] = 0xd;
+        lookup[0x65] = 0xe;
+        lookup[0x66] = 0xf;
+
+
+        uint len = bytes(input).length;
+        bytes memory res = mkb(len/2);
+        uint i;
+        while (i &lt; len) {
+            uint total = (lookup[uint(bytes(input)[i])] &lt;&lt; 4) + lookup[uint(bytes(input)[i+1])];
+            i++;
+            res[i++ / 2] = byte(total);
+        }
+        output = res;
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

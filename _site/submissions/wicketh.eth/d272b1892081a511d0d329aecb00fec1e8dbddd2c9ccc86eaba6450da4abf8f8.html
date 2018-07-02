@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission d272b189...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/brainfuck">BrainFuck interpreter</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/wicketh.eth/">wicketh.eth</a>
+        <tr><th>Submitted at</th><td>2018-46-12</td></tr>
+        <tr><th>Gas used</th><td>1323506</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity ^0.4.23;
+
+contract BrainFuck {
+    
+    /// @author Remco Bloemen &lt;remco@wicked.ventures&gt;
+
+    struct VMState {
+        bytes out;
+        bytes inp;
+        uint256[] arg;
+        uint256 mp;
+        uint256 ip;
+        uint256 op;
+        uint256 pp;
+    }
+
+    function execute(bytes pro, bytes inp)
+        public pure
+        returns(bytes)
+    {
+        bytes memory out = new bytes(2048);
+        uint256[] memory arg = new uint256[](pro.length);
+        
+        // Stress test the parser. (It's a dynamic array of function pointers)
+        function(VMState memory) internal pure [] memory byt = new function(VMState memory) internal pure [] (pro.length + 1);
+        
+        compile(pro, arg, byt);
+        
+        uint256 op = run(byt, inp, out, arg);
+        
+        // Create output array
+        bytes memory ret = new bytes(op);
+        for(uint256 i = 0; i &lt; op; i++) {
+            ret[i] = out[i];
+        }
+        return ret;
+    }
+    
+    function compile(bytes memory pro, uint256[] memory arg, function(VMState memory) internal pure [] memory byt)
+        private pure
+    {
+        // Compute arguments
+        uint256[20] memory stack;
+        uint256 sp = 0;
+        uint256 bp = 0;
+        uint256 amount;
+        for(uint pp = 0; pp &lt; pro.length; pp++) {
+            bytes32 instruction = pro[pp];
+            if (instruction == '&gt;') {
+                if (pro[pp + 1] == '&gt;') {
+                    amount = 1;
+                    do {
+                        amount += 1;
+                        pp++;
+                    } while (pro[pp + 1] == '&gt;');
+                    byt[bp] = right;
+                    arg[bp] = amount;
+                } else {
+                    byt[bp] = right1;
+                }
+                bp++;
+            } else if (instruction == '&lt;') {
+                if (pro[pp + 1] == '&lt;') {
+                    amount = 1;
+                    do {
+                        amount += 1;
+                        pp++;
+                    } while (pro[pp + 1] == '&lt;');
+                    byt[bp] = left;
+                    arg[bp] = amount;
+                } else {
+                    byt[bp] = left1;
+                }
+                bp++;
+            } else if (instruction == '+') {
+                if (pro[pp + 1] == '+') {
+                    amount = 1;
+                    do {
+                        amount += 1;
+                        pp++;
+                    } while (pro[pp + 1] == '+');
+                    byt[bp] = incr;
+                    arg[bp] = amount;
+                } else {
+                    byt[bp] = incr1;
+                }
+                bp++;
+            } else if (instruction == '-') {
+                if (pro[pp + 1] == '-') {
+                    amount = 1;
+                    do {
+                        amount += 1;
+                        pp++;
+                    } while (pro[pp + 1] == '-');
+                    byt[bp] = decr;
+                    arg[bp] = amount;
+                } else {
+                    byt[bp] = decr1;
+                }
+                bp++;
+            } else if (instruction == '.') {
+                byt[bp] = output;
+                bp++;
+            } else if (instruction == ',') {
+                byt[bp] = input;
+                bp++;
+            } else if(instruction == '[') {
+                byt[bp] = open;
+                stack[sp++] = bp;
+                bp++;
+            } else if(instruction == ']') {
+                byt[bp] = close;
+                amount = stack[--sp];
+                arg[amount] = bp + 1;
+                arg[bp] = amount + 1;
+                bp++;
+            }
+        }
+        byt[bp] = exit;
+    }
+    
+    function run(function(VMState memory) internal pure [] memory byt, bytes memory inp, bytes memory out, uint256[] memory arg) private pure returns (uint256 op)
+    {
+        VMState memory s = VMState({
+            out: out,
+            inp: inp,
+            arg: arg,
+            mp: 1024,
+            pp: 0,
+            ip: 0,
+            op: 0
+        });
+        for(; s.pp &lt; byt.length;) {
+            byt[s.pp](s);
+        }
+        return s.op;
+    }
+    
+    function nop(VMState memory s) private pure
+    {
+        s.pp++;
+    }
+    
+    function right1(VMState memory s) private pure
+    {
+        s.mp += 1;
+        s.pp++;
+    }
+    
+    function right(VMState memory s) private pure
+    {
+        s.mp += s.arg[s.pp];
+        s.pp++;
+    }
+    
+    function left1(VMState memory s) private pure
+    {
+        s.mp -= 1;
+        s.pp++;
+    }
+    
+    function left(VMState memory s) private pure
+    {
+        s.mp -= s.arg[s.pp];
+        s.pp++;
+    }
+    
+    function incr1(VMState memory s) private pure
+    {
+        s.out[s.mp] = bytes1(read1(s.out, s.mp) + 1);
+        s.pp++;
+    }
+    
+    function incr(VMState memory s) private pure
+    {
+        s.out[s.mp] = bytes1(read1(s.out, s.mp) + s.arg[s.pp]);
+        s.pp++;
+    }
+    
+    function decr1(VMState memory s) private pure
+    {
+        s.out[s.mp] = bytes1(read1(s.out, s.mp) - 1);
+        s.pp++;
+    }
+    
+    function decr(VMState memory s) private pure
+    {
+        s.out[s.mp] = bytes1(read1(s.out, s.mp) - s.arg[s.pp]);
+        s.pp++;
+    }
+    
+    function output(VMState memory s) private pure
+    {
+        s.out[s.op] = s.out[s.mp];
+        s.op++;
+        s.pp++;
+    }
+    
+    function input(VMState memory s) private pure
+    {
+        s.out[s.mp] = s.inp[s.ip];
+        s.ip++;
+        s.pp++;
+    }
+    
+    function open(VMState memory s) private pure
+    {
+        if (s.out[s.mp] == 0) {
+            s.pp = s.arg[s.pp];
+        } else {
+            s.pp++;
+        }
+    }
+    
+    function close(VMState memory s) private pure
+    {
+        if (s.out[s.mp] != 0) {
+            s.pp = s.arg[s.pp];
+        } else {
+            s.pp++;
+        }
+    }
+    
+    function exit(VMState memory s) private pure
+    {
+        s.pp = 0x123456789ABCDEF;
+    }
+    
+    function read1(bytes memory inp, uint256 i)
+        internal pure
+        returns (uint256)
+    {
+        return uint256(inp[i]);
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

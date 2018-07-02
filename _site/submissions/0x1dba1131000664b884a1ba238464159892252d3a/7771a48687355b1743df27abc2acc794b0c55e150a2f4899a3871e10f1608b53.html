@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 7771a486...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/unique">Remove duplicate elements</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0x1dba1131000664b884a1ba238464159892252d3a/">0x1dba1131000664b...</a>
+        <tr><th>Submitted at</th><td>2018-00-30</td></tr>
+        <tr><th>Gas used</th><td>1482489</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ *
+ * Author: Jordi Baylina
+ */
+
+pragma solidity 0.4.24;
+
+contract Unique {
+    /**
+     * @dev Removes all but the first occurrence of each element from a list of
+     *      integers, preserving the order of original elements, and returns the list.
+     *
+     * The input list may be of any length.
+     *
+     * @param input The list of integers to uniquify.
+     * @return The input list, with any duplicate elements removed.
+     *
+     */
+    function uniquify(uint[] input) public pure returns(uint[] ret) {
+        input;
+        assembly {
+//            let _input := add(calldataload(4), 4)
+            let _input := input
+
+            let hashLen:= 0x100
+            let l := mload(_input)
+            let out := mload(0x40)
+//            let out := 0
+            let pout := add(out,0x40)   // One for the length and one for output variable
+            let t0 := add(pout,add(mul(l, 0x20),0x40))
+//            mstore(0x40, t0)
+            let zeroUsed
+            for {
+                let p:= add(_input, 32)
+                let lastp:= add(p, mul(l,32))
+            } lt(p, lastp) {
+                p:= add(p,32)
+            } {
+                let x:= mload(p)
+                switch x
+                case 0 {
+                    if eq(zeroUsed,0) {
+                        mstore(pout, 0)
+                        pout := add(pout,32)
+                        zeroUsed := 1
+                    }
+                }
+                default {
+                    let t
+                    let d
+                    let r
+                    for {
+//                        let s := sha3(p,0x20)
+                        let s := x
+                        t := t0
+                        d := mul(mod(s,hashLen),32)
+                        r := mload(add(t,d))
+                    } and(gt(r,0), not(eq(x, r))) {
+                        s := div(s, hashLen)
+                        d := mul(mod(s, hashLen),32)
+                        t := add(t, mul(hashLen,32))
+                        r := mload(add(t,d))
+                    } {}
+                    if eq(r,0) {
+                        mstore(add(t,d), x)
+                        mstore(pout, x)
+                        pout:=add(pout,32)
+                    }
+                }
+            }
+
+            mstore(out, 0x20)
+            mstore(add(out, 0x20), sub(div(sub(pout, out), 0x20), 2))
+            return(out, sub(pout,out))
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

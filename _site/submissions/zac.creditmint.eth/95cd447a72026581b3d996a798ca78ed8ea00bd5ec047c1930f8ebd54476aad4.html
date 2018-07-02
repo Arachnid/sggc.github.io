@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 95cd447a...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/unique">Remove duplicate elements</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a>
+        <tr><th>Submitted at</th><td>2018-40-11</td></tr>
+        <tr><th>Gas used</th><td>207506</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity ^0.4.23;
+
+contract Unique {
+    /**
+     * @dev Removes all but the first occurrence of each element from a list of
+     *      integers, preserving the order of original elements, and returns the list.
+     *
+     * The input list may be of any length.
+     *
+     * @return The input list, with any duplicate elements removed.
+     */
+
+    // bloom filters! For when 'eeeh, probably' is good enough...
+
+    // probability of a hash collision = (1-e^(-kn/m))^k
+    // assuming n tops out at around 256 (although...)
+    // then m = 32*256 bits and k=4 gives probability p of 0.002%
+    // the value of k seems to be the overriding gas guzzler despite my best efforts
+    // setting k=1 and having a thwacking huge bitfield (2^19 bits, or 1024 machine words)
+    // seems to be the most gas-efficient way of getting an acceptably low p-value
+    function uniquify(uint[]) public view returns(uint[]) {
+
+        assembly {
+            // exit if no data
+            0x44 calldatasize eq no_data jumpi
+
+            // hash table: every 8 bit number
+            // converts to a unique 256 bit word with a
+            // single bit set
+            1 0x0 mstore
+            2 0x20 mstore
+            4 0x40 mstore
+            8 0x60 mstore
+            16 0x80 mstore
+            32 0xa0 mstore
+            64 0xc0 mstore
+            128 0xe0 mstore
+
+            // memory map:
+            // 0x0 - 0x100: hash table map
+            // 0x100 - 0x520: bloom filter storage
+            // 0x520 - end: input data (and result)
+
+            0x44 calldatasize sub
+            0x44
+            0x8120
+            calldatacopy
+
+            // variable declarations
+            // e = end of calldata
+            // a = memory pointer for next output word
+            // n = memory pointer for next input word
+            // h = hashed entry
+            // i_a = memory index to access bloom filter limb for first hash
+            // i_b = memory index to access bloom filter limb for second hash
+            // l_a = first bloom filter limb
+            // l_b = second bloom filter limb
+            // b_a = pseudo random bitsequence to compare first limb against
+            // b_b = pseudo random bitsequence to compare first limb against
+            // s = byte size of return array (minus dynamic array formatting)
+                                        // stack
+            0x80dc calldatasize add      // e
+            0x8120                       // a e
+            0x8120                       // n a e
+
+        // fall into loop, we know there's at least one entry
+        loop_start:
+                // h = keccak256(n, 0x20)
+                0x20 dup2 keccak256     // h n a e
+
+                // get two bloom filter indices
+                // i_a = add(0x100, and(h, 0x7fe0))
+                0x7fe0 dup2 and 0x100 add            // i_a  h n a e
+                dup1 mload                          // l_a i_a h n a e
+                // get pseudorandom 8-bit value and map to bit sequence
+                dup3 3 byte mload                  // b_a l_a i_a h n a e
+
+                //  and(b_a,l_a)
+                dup2 dup2 and iszero
+                add_to_set jumpi                    // b_a l_a i_a h n a e
+
+                pop pop pop pop                     // n a e
+                0x20 add                            // n' a e
+                dup3 dup2 lt loop_start jumpi
+
+            loop_end:                               // n a e
+            pop                                     // a e
+            0x20 0x80e0 mstore
+            0x8120 swap1 sub                         // s e
+            // mstore(500, div(s, 0x20))
+            0x20 dup2 div 0x8100 mstore
+            // return(0x4e0, add(size, 0x40))
+            0x40 add 0x80e0 return
+
+            // fiddling around with jumps makes the compiler complain about unbalanced stack issues
+            // here's your balanced stack! problem solved...
+            0 0 0
+
+            add_to_set:
+                // mstore(a, mload(n))
+                dup5 mload dup7 mstore             // b_a l_a i_a h n a e
+
+                // mstore(i_a, or(b_a, l_a))
+                or swap1 mstore                     // h n a e
+                pop                                 // n a e (I should optimize this out...)
+                0x20 add
+                swap1 0x20 add swap1                // n' a' e
+
+                // if lt(n, e) jump to start
+                dup3 dup2 lt loop_start jumpi
+                loop_end jump
+
+            no_data:
+                0x20 0x00 mstore
+                0x40 0x00 return
+
+
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

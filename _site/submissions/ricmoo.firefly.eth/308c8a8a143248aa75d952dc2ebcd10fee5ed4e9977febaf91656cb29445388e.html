@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 308c8a8a...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/indexof">String search</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a>
+        <tr><th>Submitted at</th><td>2018-14-30</td></tr>
+        <tr><th>Gas used</th><td>109638</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity 0.4.24;
+
+contract IndexOf {
+    function indexOf(string haystackString, string needleString) public pure returns (int) {
+        // Boyer-Moore does better with longer needles; @TODO: tune this number?
+        if (bytes(needleString).length &gt; 8) {
+            return boyerMoore(bytes(haystackString), bytes(needleString));
+        }
+        return naive(bytes(haystackString), bytes(needleString));
+    }
+
+    // See: https://en.wikipedia.org/wiki/Boyer–Moore_string-search_algorithm
+    // See: https://www.geeksforgeeks.org/pattern-searching-set-7-boyer-moore-algorithm-bad-character-heuristic/
+    function boyerMoore(bytes haystack, bytes needle) internal pure returns (int) {
+        uint haystackLength = haystack.length;
+        uint needleLength = needle.length;
+
+        // Trivial case
+        if(needleLength &gt; haystackLength) { return -1; }
+
+        uint i;
+        int j;
+
+        // Create a bad cahracter map, offset by 1 (so we can use uint256)
+        uint[256] memory badCharacter;
+        for (i = 0; i &lt; needleLength; i++) {
+            badCharacter[uint(needle[i])] = i + 1;
+        }
+
+        uint shift = 0;
+        uint end = haystackLength - needleLength;
+        while (shift &lt;= end) {
+            j = int(needleLength - 1);
+            while (true) {
+
+               // Found a match!
+               if (j &lt; 0) { return int(shift); }
+
+               if (needle[uint(j)] != haystack[uint(int(shift) + j)]) {
+                   break;
+               }
+               j--;
+            }
+
+            // Shift! (j is non-negatibe)
+            uint value = badCharacter[uint(haystack[shift + uint(j)])] - 1;
+            if (int(value) &lt; j) {
+                shift += uint(j) - value;
+            } else {
+                shift += 1;
+            }
+        }
+
+        return -1;
+    }
+
+    function naive(bytes haystack, bytes needle) internal pure returns (int) {
+
+        uint haystackLength = haystack.length;
+        uint needleLength = needle.length;
+
+        if(needleLength &gt; haystackLength) { return -1; }
+
+        uint end = haystackLength - needleLength + 1;
+        for (uint i = 0; i &lt; end; i++) {
+            uint found = 1;
+            for (uint j = 0; j &lt; needleLength; j++) {
+                if (haystack[i + j] != needle[j]) {
+                    found = 0;
+                    break;
+                }
+            }
+
+            if (found == 1) {
+                return int(i);
+            }
+        }
+
+        return -1;
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 593f813c...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/hexdecoder">Hex decoder</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x888888417655103...</a>
+        <tr><th>Submitted at</th><td>2018-25-29</td></tr>
+        <tr><th>Gas used</th><td>1208435</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity 0.4.24;
+
+contract HexDecoder {
+
+    function decode(
+        string input
+    ) public pure returns(bytes outBytes) {
+        bytes memory inBytes = bytes(input);
+        uint outLen = inBytes.length / 2;
+        if (outLen == 0) {
+            return;
+        }
+        outBytes = new bytes(outLen);
+        if (outLen &lt;= 128) {
+            decodeFew(inBytes, outBytes);
+            return;
+        }
+        if (outLen &lt;= 512) {
+            decodeMore(inBytes, outBytes);
+            return;
+        }
+        decodeMost(inBytes, outBytes);
+    }
+
+    function decodeFew(
+        bytes inBytes,
+        bytes outBytes
+    ) private pure {
+        int outLen = int(outBytes.length);
+        while (outLen-- != 0) {
+            uint tmp = uint(inBytes[uint(outLen)+uint(outLen)+1]);
+            if (tmp &lt; 58) {
+                tmp -= 48;
+            } else if (tmp &gt; 96) {
+                tmp -= 87;
+            } else {
+                tmp -= 55;
+            }
+            tmp += uint(inBytes[uint(outLen)+uint(outLen)]) * 16;
+            if (tmp &lt; 928) {
+                tmp -= 768;
+            } else if (tmp &gt; 1536) {
+                tmp -= 1392;
+            } else {
+                tmp -= 880;
+            }
+            outBytes[uint(outLen)] = byte(tmp);
+        }
+    }
+
+    function decodeMore(
+        bytes inBytes,
+        bytes outBytes
+    ) private pure {
+        int j = int(outBytes.length);
+        uint[103] memory dict = [
+            uint(0),
+             0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+             0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+             0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+             1,  2,  3,  4,  5,  6,  7,  8,  9,  0,  0,  0,  0,  0,  0,  0,
+            10, 11, 12, 13, 14, 15,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+             0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+            10, 11, 12, 13, 14, 15];
+        while (j-- != 0) {
+            outBytes[uint(j)] = byte(
+                dict[uint(inBytes[uint(j)+uint(j)])] * 16 +
+                dict[uint(inBytes[uint(j)+uint(j)+1])]
+            );
+        }
+    }
+
+    function decodeMost(
+        bytes inBytes,
+        bytes outBytes
+    ) private pure {
+        int j = int(outBytes.length);
+        uint[103] memory dict1 = [
+            uint(0),
+             0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+             0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+             0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+           0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9,   0,   0,   0,   0,   0,   0,   0,
+           0xa, 0xb, 0xc, 0xd, 0xe, 0xf,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+             0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+           0xa, 0xb, 0xc, 0xd, 0xe, 0xf];
+        uint[103] memory dict2 = [
+            uint(0),
+             0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+             0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+             0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+          0x10,0x20,0x30,0x40,0x50,0x60,0x70,0x80,0x90,   0,   0,   0,   0,   0,   0,   0,
+          0xa0,0xb0,0xc0,0xd0,0xe0,0xf0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+             0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+          0xa0,0xb0,0xc0,0xd0,0xe0,0xf0];
+        while (j-- != 0) {
+            outBytes[uint(j)] = byte(
+                dict2[uint(inBytes[uint(j)+uint(j)])] |
+                dict1[uint(inBytes[uint(j)+uint(j)+1])]);
+        }
+    }
+}
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

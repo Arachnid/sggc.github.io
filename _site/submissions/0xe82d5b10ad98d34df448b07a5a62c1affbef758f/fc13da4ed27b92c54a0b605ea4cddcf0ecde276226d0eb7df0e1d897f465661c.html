@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission fc13da4e...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/unique">Remove duplicate elements</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0xe82d5b10ad98d34df448b07a5a62c1affbef758f/">0xe82d5b10ad98d34...</a>
+        <tr><th>Submitted at</th><td>2018-18-24</td></tr>
+        <tr><th>Gas used</th><td>335083</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity 0.4.24;
+
+contract Unique {
+    function uniquify(uint[] input) public pure returns(uint[]) {
+        uint length = input.length;
+        if (length &gt; 1) {
+            uint b;
+            uint cindex = 0;
+            uint s;
+
+            for (uint i = 0; i &lt; length; i++) {
+                s = 2 ** (input[i] &amp; 65535);
+                if ((b &amp; s) == 0) {
+                    b |= s;
+                    input[cindex] = input[i];
+                    cindex ++;
+                }
+            }
+            if (cindex != length) {
+                return split(input, cindex);
+            } 
+        }
+        return input;
+    }
+
+    function split(uint[] input, uint cindex) internal pure returns(uint[]) {
+        uint[] memory ret = new uint[](cindex);
+        for (uint j = 0; j &lt; cindex; j++) {
+            ret[j] = input[j];
+        }
+        return ret;
+    }
+}
+
+// 0xE82D5B10ad98d34dF448b07a5a62C1aFfBEf758F
+// 335087
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

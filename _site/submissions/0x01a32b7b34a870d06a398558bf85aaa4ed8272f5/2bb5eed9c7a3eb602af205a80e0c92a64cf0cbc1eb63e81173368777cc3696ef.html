@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 2bb5eed9...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/hexdecoder">Hex decoder</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0x01a32b7b34a870d06a398558bf85aaa4ed8272f5/">0x01a32b7b34a870d...</a>
+        <tr><th>Submitted at</th><td>2018-29-17</td></tr>
+        <tr><th>Gas used</th><td>169039</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity 0.4.24;
+
+contract HexDecoder {
+  function decode(string input) public pure returns(bytes output) {
+    assembly {
+      let l := mload(input)
+
+      let n := mload(0x40)
+      mstore(add(n, 48), 0x00010203040506070809000000000000000a0b0c0d0e0f000000000000000000)
+      mstore(add(add(n, 48), 31), 0x0000000000000000000000000000000000000a0b0c0d0e0f0000000000000000)
+
+      let o := add(input, 0x20)
+      let s := add(o, add(l, 31))
+      for { let i := o } lt(i, s) { i := add(i, 0x20) } {
+        let c := mload(i)
+
+        mstore8(add(o, 0), add(mul(byte(0, mload(add(n, byte(0, c)))), 16), byte(0, mload(add(n, byte(1, c))))))
+        mstore8(add(o, 1), add(mul(byte(0, mload(add(n, byte(2, c)))), 16), byte(0, mload(add(n, byte(3, c))))))
+        mstore8(add(o, 2), add(mul(byte(0, mload(add(n, byte(4, c)))), 16), byte(0, mload(add(n, byte(5, c))))))
+        mstore8(add(o, 3), add(mul(byte(0, mload(add(n, byte(6, c)))), 16), byte(0, mload(add(n, byte(7, c))))))
+        mstore8(add(o, 4), add(mul(byte(0, mload(add(n, byte(8, c)))), 16), byte(0, mload(add(n, byte(9, c))))))
+        mstore8(add(o, 5), add(mul(byte(0, mload(add(n, byte(10, c)))), 16), byte(0, mload(add(n, byte(11, c))))))
+        mstore8(add(o, 6), add(mul(byte(0, mload(add(n, byte(12, c)))), 16), byte(0, mload(add(n, byte(13, c))))))
+        mstore8(add(o, 7), add(mul(byte(0, mload(add(n, byte(14, c)))), 16), byte(0, mload(add(n, byte(15, c))))))
+        mstore8(add(o, 8), add(mul(byte(0, mload(add(n, byte(16, c)))), 16), byte(0, mload(add(n, byte(17, c))))))
+        mstore8(add(o, 9), add(mul(byte(0, mload(add(n, byte(18, c)))), 16), byte(0, mload(add(n, byte(19, c))))))
+        mstore8(add(o, 10), add(mul(byte(0, mload(add(n, byte(20, c)))), 16), byte(0, mload(add(n, byte(21, c))))))
+        mstore8(add(o, 11), add(mul(byte(0, mload(add(n, byte(22, c)))), 16), byte(0, mload(add(n, byte(23, c))))))
+        mstore8(add(o, 12), add(mul(byte(0, mload(add(n, byte(24, c)))), 16), byte(0, mload(add(n, byte(25, c))))))
+        mstore8(add(o, 13), add(mul(byte(0, mload(add(n, byte(26, c)))), 16), byte(0, mload(add(n, byte(27, c))))))
+        mstore8(add(o, 14), add(mul(byte(0, mload(add(n, byte(28, c)))), 16), byte(0, mload(add(n, byte(29, c))))))
+        mstore8(add(o, 15), add(mul(byte(0, mload(add(n, byte(30, c)))), 16), byte(0, mload(add(n, byte(31, c))))))
+
+
+        o := add(o, 16)
+      }
+
+      mstore(input, div(l, 2))
+      output := input
+    }
+  }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

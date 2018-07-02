@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 05f64b64...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/hexdecoder">Hex decoder</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a>
+        <tr><th>Submitted at</th><td>2018-41-10</td></tr>
+        <tr><th>Gas used</th><td>37456</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity ^0.4.23;
+
+contract HexDecoder {
+    /**
+     * @dev Decodes a hex-encoded input string, returning it in binary.
+     *
+     * Input strings may be of any length, but will always be a multiple of two
+     * bytes long, and will not contain any non-hexadecimal characters.
+     *
+     * @param input The hex-encoded input.
+     * @return The decoded output.
+     */
+    function decode(string input) external view returns(bytes output) {
+        assembly {
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF
+            0x9000000000000000000000000000000000000000000000000000000000000000
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F
+
+            2 0x24 calldataload div
+            dup1 iszero no_bytes jumpi
+
+            0x44
+            0x40
+            
+            dup7 4 eq four_byte jumpi
+            dup7 1 eq one_byte jumpi
+            loop_start:
+
+                dup2 calldataload
+                dup8
+                dup2 dup9 or not
+                dup8 mulmod add
+                dup5 and
+                16 dup2 div or
+                0x20 mstore
+                4 mload 6 mload 8 mload 10 mload 12 mload 14 mload 16 mload 18 mload
+                20 mload 22 mload 24 mload 26 mload 28 mload 30 mload 32 mload
+                48 mstore8 47 mstore8 46 mstore8 45 mstore8 44 mstore8 43 mstore8 42 mstore8 41 mstore8
+                40 mstore8 39 mstore8 38 mstore8 37 mstore8 36 mstore8 35 mstore8 34 mstore8
+                33 mload dup2 mstore
+
+                dup2 0x20 add calldataload
+                dup8
+                dup2 dup9 or not
+                dup8 mulmod add
+                dup5 and
+                16 dup2 div or
+                0x20 mstore
+                4 mload 6 mload 8 mload 10 mload 12 mload 14 mload 16 mload 18 mload
+                20 mload 22 mload 24 mload 26 mload 28 mload 30 mload 32 mload
+                48 mstore8 47 mstore8 46 mstore8 45 mstore8 44 mstore8 43 mstore8 42 mstore8 41 mstore8
+                40 mstore8 39 mstore8 38 mstore8 37 mstore8 36 mstore8 35 mstore8 34 mstore8
+                33 mload dup2 0x10 add mstore
+    
+                0x20 add
+                swap1 0x40 add
+                swap1
+                dup2 calldatasize gt
+                loop_start jumpi
+
+            loop_end:
+            pop pop
+            0x20 0x00 mstore
+            dup1 0x20 mstore
+            0x40 add 0x0
+            dup2 mstore
+
+            dup1 0x1f and iszero
+            skip jumpi
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE0 and 0x20 add
+            skip:
+            0
+            return
+            pop pop pop pop      
+            
+        no_bytes:
+            0x40 0x00 return
+
+        one_byte:
+
+            calldataload(0x44)
+            dup6
+            dup2 dup6 or not
+                // multiply by 2**255 + 2**252, trigger integer overflow so that
+                // every 5th bit becomes every (4th + 1st) bit
+            dup6
+            mulmod
+                // combine back into w
+            add
+            // mask out the top 4 bits of every byte
+            dup2 and
+            
+            dup1 1 byte // 0b
+            swap1 0 byte      // 0a
+            16 mul or   // ab
+            0x40 mstore8
+            0x00 0x41 mstore
+            0x01 0x20 mstore
+            0x20 0x00 mstore
+            0x60 0x00 return
+
+        four_byte:
+                dup2 calldataload
+                dup8
+                dup2 dup9 or not
+                dup8 mulmod add
+                dup5 and
+                16 dup2 div or
+                0x20 mstore
+                4 mload 6 mload 8 mload
+                36 mstore8 35 mstore8 34 mstore8
+                33 mload dup2 mstore
+
+            0x20 0x00 mstore
+            4 0x20 mstore
+            0x0 0x44 mstore
+            0x60
+            0
+            return
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

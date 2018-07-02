@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 7e5cff3e...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/brainfuck">BrainFuck interpreter</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/wicketh.eth/">wicketh.eth</a>
+        <tr><th>Submitted at</th><td>2018-35-28</td></tr>
+        <tr><th>Gas used</th><td>904175</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity ^0.4.23;
+
+contract BrainFuck {
+    
+    //function () external payable { assembly {
+    function execute(bytes program, bytes input) external payable returns(bytes) { assembly {
+
+        
+        /// @author Remco Bloemen &lt;remco@wicked.ventures&gt; 
+        
+        // max(output size) = 257
+        // max(tape) = 1024
+        // Tape is very sparse and can be used modulo 11 or 16
+        // max(loop stack) = 2
+        // Assume input characters &lt; 128
+        // max(program) &gt;= 272 &lt;= 280
+        
+        // This canceles out the "mstore(0x40, 0x80)" that
+        // solc likes to inject. It even gets partially optimized.
+        mstore(0x40, 0x00)
+        
+        // Declare stack variables
+        // (we jump so much, best to keep stack layout fixed)
+        //
+        //        Runtime              Compile time
+        let t  //                      Temp (repetitions)
+        let t2
+        let js // Jump stack
+        let tp // Tape pointer         [ ] stack pointer
+        let ip // Input pointer        Source pointer
+        let op // Output pointer       Temp (instruction)
+        let pp // Program pointer
+    
+    ///////////////////////////////////////////////////////
+    // BrainFuck Interpreter
+    ///////////////////////////////////////////////////////
+        
+        // Create lookup table (256 bytes)
+        // From high to low since we have overlaping writes
+        // XORed with cnop to make cnop the default entry
+        mstore(0xBA, xor(cnop, cclose))
+        mstore(0xB6, xor(cnop, copen))
+        mstore(0x7C, xor(cnop, cright))
+        mstore(0x78, xor(cnop, cleft))
+        mstore(0x5C, xor(cnop, coutput))
+        mstore(0x5A, xor(cnop, cdecr))
+        mstore(0x58, xor(cnop, cinput))
+        mstore(0x56, xor(cnop, cincr))
+        mstore(0x00, xor(cnop, ceof))
+        
+        // 0x000 .. 0x100  instruction lookup table 
+        // 0x110 .. 0x120  tape
+        // 0x200 .. 0x341  output
+        // Program is kept in calldata. Program pointer offset by -31 bytes.
+        // Input is kept in calldata. Input pointer is offset by -31 bytes.
+        
+    // reset:
+        pp := add(calldataload(0x04), 4) // offset left 32 bytes
+        ip := add(calldataload(0x24), 5) // offset left 31 bytes
+        tp := 0x100
+        op := 0x200
+        
+        jumpi(explode, gt(calldataload(pp), 276))
+        
+    cnop:
+        pp := add(pp, 1)
+        t := and(calldataload(pp), 0x7F)
+        jump(xor(cnop, and(mload(add(t, t)), 0xFFFF)))
+        
+    cright:
+        tp := add(and(add(tp, 1), 0xF), 0x100)
+        jump(cnop)
+
+    cleft:
+        tp := add(and(sub(tp, 1), 0xF), 0x100)
+        jump(cnop)
+
+    cincr:
+        mstore8(add(tp, 31), add(mload(tp), 1))
+        jump(cnop)
+        
+    cdecr:
+        mstore8(add(tp, 31), sub(mload(tp), 1))
+        jump(cnop)
+    
+    coutput:
+        mstore8(op, mload(tp))
+        op := add(op, 1)
+        jump(cnop)
+    
+    cinput:
+        mstore8(add(tp, 31), calldataload(ip))
+        ip := add(ip, 1)
+        jump(cnop)
+    
+    copen:
+        jumpi(copen_take, and(mload(tp), 0xff))
+        js := 1
+    copen_find:
+        pp := add(pp, 1)
+        t := and(calldataload(pp), 0x7F)
+        js := add(js, eq(t, 0x5b)) // [
+        js := sub(js, eq(t, 0x5d)) // ]
+        jumpi(copen_find, js)
+        jump(cnop)
+    copen_take:
+        jump(cnop)
+        
+    cclose:
+        jumpi(cclose_find, and(mload(tp), 0xff))
+        jump(cnop)
+    cclose_find:
+        js := 1
+    cclose_find_loop:
+        pp := sub(pp, 1)
+        t := and(calldataload(pp), 0x7F)
+        js := sub(js, eq(t, 0x5b)) // [
+        js := add(js, eq(t, 0x5d)) // ]
+        jumpi(cclose_find_loop, js)
+        jump(cnop)
+        
+    ceof:
+        mstore(0x1C0, 0x20)
+        mstore(0x1E0, sub(op, 0x200))
+        return(0x1C0, and(sub(op, 0x1A1), 0xFE0))
+        
+    explode:
+        selfdestruct(0x0)
+    }}
+    
+    // Now someone needs to write an ERC20 contract in BrainFuck,
+    // so it can be runrun in this VM. Maybe I'll put a bounty on it.
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

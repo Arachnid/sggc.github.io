@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 9ae53553...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/brainfuck">BrainFuck interpreter</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a>
+        <tr><th>Submitted at</th><td>2018-09-30</td></tr>
+        <tr><th>Gas used</th><td>365715</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+// 148
+pragma solidity ^0.4.23;
+
+contract BrainFuck {
+    /**
+     * @dev Executes a BrainFuck program, as described at https://en.wikipedia.org/wiki/Brainfuck.
+     *
+     * Memory cells, input, and output values are all expected to be 8 bit
+     * integers. Incrementing past 255 should overflow to 0, and decrementing
+     * below 0 should overflow to 255.
+     *
+     * Programs and input streams may be of any length. The memory tape starts
+     * at cell 0, and will never be moved below 0 or above 1023. No program will
+     * output more than 1024 values.
+     *
+     * @return The program's output stream. Should be exactly the length of the
+     *          number of outputs produced by the program.
+     */
+    function execute(bytes, bytes) external view returns(bytes) {
+        // Here's a funny thing. One of the interesting idiosyncrasies of the EVM is how
+        // it handles jump instructions. It takes the jump destination from the stack, as opposed to
+        // most languages, where jump destinations are hardcoded defined at compile time instead of runtime.
+        // This allows for interesting shenanigans! Like, for example, using a lookup table to alter the program flow :)
+        // All things considered, I think this turned out rather well. Honestly I'm surprised it works at all...
+        // Well, that's about it. I feel like annotating the code with any more comments would be against the
+        // spirit of this category. It is, after all, called BrainFuck for a reason :)
+        assembly {
+                0x00
+                0x00
+                sneaky_gas_expander:
+                    0 not dup3 dup3 mulmod swap2 pop        // i j
+                    0x01 add
+                    dup2 0x00 mstore
+                    0x200 dup2 lt sneaky_gas_expander jumpi
+                pop pop
+                mstore(0x40, 0x40)
+                mstore(0x40, 0x60)
+                mstore(0x20, sub(strike_faustian_bargain, no_op))
+                mstore(0x00, sub(finished_compilation, no_op))
+                mstore(0x7c0, sub(compile_increment_data_pointer, no_op))
+                mstore(0x780, sub(compile_decrement_data_pointer, no_op))
+                mstore(0x560, sub(compile_increment_data_cell, no_op))
+                mstore(0x5a0, sub(compile_decrement_data_cell, no_op))
+                mstore(0x5c0, sub(compile_output_data_cell, no_op))
+                mstore(0x580, sub(compile_input_to_data_cell, no_op))
+                mstore(0xb60, sub(compile_conditional_jump_forward, no_op))
+                mstore(0xba0, sub(compile_conditional_jump_backward, no_op))
+                mstore(0xfe0, 0x1)
+                0x44
+                strike_faustian_bargain:
+                    0x20 add
+                    0x20
+                    dup2 calldataload
+                    dup1 0 byte 0x20 mul 0xfc0 mstore
+                    0x20 mul dup1 0xfe0 mstore
+                    0x1fff and
+                    0xfdf mload
+                    0xfde mload
+                    0xfdd mload
+                    0xfdc mload
+                    0xfdb mload
+                    0xfda mload
+                    0xfd9 mload
+                    0xfd8 mload
+                    0xfd7 mload
+                    0xfd6 mload
+                    0xfd5 mload
+                    0xfd4 mload
+                    0xfd3 mload
+                    0xfd2 mload
+                    0xfd1 mload
+                    0xfd0 mload
+                    0xfcf mload
+                    0xfce mload
+                    0xfcd mload
+                    0xfcc mload
+                    0xfcb mload
+                    0xfca mload
+                    0xfc9 mload
+                    0xfc8 mload
+                    0xfc7 mload
+                    0xfc6 mload
+                    0xfc5 mload
+                    0xfc4 mload
+                    0xfc3 mload
+                    0xfc2 mload
+                    0xfc0 mload
+
+                no_op:
+                    0x1fe0 and mload no_op add jump
+
+                // &gt; (0x3e * 0x20)
+                compile_increment_data_pointer:
+                    dup1 0x1fe0 and 0x7c0 eq compile_increment_data_pointer_many jumpi
+                    increment_data_pointer msize mstore
+                    0x1fe0 and mload no_op add jump
+                compile_increment_data_pointer_many:
+                    0x01
+                compile_increment_data_pointer_many_loop:
+                    swap1 pop 0x01 add
+                    dup2 0x1fe0 and 0x7c0 eq compile_increment_data_pointer_many_loop jumpi
+                    increment_data_pointer_many msize mstore
+                    msize mstore
+                    0x1fe0 and mload no_op add jump
+                
+                // &lt;
+                compile_decrement_data_pointer:
+                    decrement_data_pointer msize mstore
+                    0x1fe0 and mload no_op add jump
+
+                // +
+                compile_increment_data_cell:
+                    increment_data_cell msize mstore
+                    0x1fe0 and mload no_op add jump
+                // -
+                compile_decrement_data_cell:
+                    decrement_data_cell msize mstore
+                    0x1fe0 and mload no_op add jump
+
+                // .
+                compile_output_data_cell:
+                    output_data_cell msize mstore
+                    0x1fe0 and mload no_op add jump
+
+                // ,
+                compile_input_to_data_cell:
+                    input_to_data_cell msize mstore
+                    0x1fe0 and mload no_op add jump
+
+                // [
+                compile_conditional_jump_forward:
+                    conditional_jump_forward msize mstore
+                    0x40 mload msize dup2 mstore
+                    0x20 add 0x40 mstore
+                    gas msize mstore // hmmmmmmm
+                    0x1fe0 and mload no_op add jump
+
+                // ]
+                compile_conditional_jump_backward:
+                    0x20 0x40 mload sub dup1 0x40 mstore mload
+                    conditional_jump_backward msize mstore
+                    0x20 dup2 add msize mstore
+                    msize swap1 mstore
+                    0x1fe0 and mload no_op add jump    
+
+                finished_compilation:
+                    finish_execution msize mstore
+
+                0x05 0x24 calldataload add
+                0x400
+                0x120
+                0x1000
+                dup1 mload jump
+
+                increment_data_pointer:
+                    swap1 0x01 add swap1
+                    0x20 add dup1
+                    mload jump
+
+                increment_data_pointer_many:
+                    swap1 dup2 0x20 add mload add swap1
+                    0x40 add dup1
+                    mload jump
+
+                decrement_data_pointer:
+                    0x01 dup3 sub swap2 pop
+                    0x20 add dup1
+                    mload jump
+
+                increment_data_cell:
+                    0x0100000000000000000000000000000000000000000000000000000000000000
+                    dup3 mload add dup3 mstore
+                    0x20 add dup1
+                    mload jump
+
+                decrement_data_cell:
+                    0x0100000000000000000000000000000000000000000000000000000000000000
+                    dup3 mload sub dup3 mstore
+                    0x20 add dup1
+                    mload jump
+
+                output_data_cell:
+                    dup2 mload dup4 0x01 add swap4 mstore
+                    0x20 add dup1
+                    mload jump
+
+                input_to_data_cell:
+                    dup4 0x01 add swap4 calldataload dup3 mstore8
+                    0x20 add dup1
+                    mload jump
+    
+                ternary_operator_rejects_explicit_politeness:
+                    dup1 "please" eq finish_execution jumpi
+
+                conditional_jump_forward:
+                    0xff00000000000000000000000000000000000000000000000000000000000000
+                    dup3 mload and skip_jump_forward jumpi
+                    0x20 add mload dup1
+                    mload jump
+                skip_jump_forward:
+                    0x40 add dup1
+                    mload jump
+
+                conditional_jump_backward:
+                    0xff00000000000000000000000000000000000000000000000000000000000000
+                    dup3 mload and jump_backward jumpi
+                    0x40 add dup1
+                    mload jump
+                jump_backward:
+                    0x20 add mload dup1
+                    mload jump
+
+                finish_execution:
+                0x00 dup4 mstore
+                0x400 dup4 sub 0x3e0 mstore
+                mstore(0x3c0, 0x20)
+                0x60 0x20 0x20 0x401 dup7 sub div mul add 0x3c0 return
+                
+        pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop pop
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

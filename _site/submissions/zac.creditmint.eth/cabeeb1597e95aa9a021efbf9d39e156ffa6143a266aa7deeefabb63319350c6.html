@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission cabeeb15...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/hexdecoder">Hex decoder</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a>
+        <tr><th>Submitted at</th><td>2018-20-10</td></tr>
+        <tr><th>Gas used</th><td>39161</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity ^0.4.23;
+
+contract HexDecoder {
+    /**
+     * @dev Decodes a hex-encoded input string, returning it in binary.
+     *
+     * Input strings may be of any length, but will always be a multiple of two
+     * bytes long, and will not contain any non-hexadecimal characters.
+     *
+     * @param input The hex-encoded input.
+     * @return The decoded output.
+     */
+    function decode(string input) external view returns(bytes output) {
+        assembly {
+            /* 0 0x40 mstore
+            no_bytes 0x00 mstore
+            one_word 0x20 mstore
+            two_words 0x40 mstore
+            three_words 0x60 mstore
+            four_words 0x80 mstore
+
+            2 0x24 calldataload div
+            dup1
+            dup1 dup1 0x0f and iszero no_residual jumpi
+
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0 and 0x10 add
+                
+            no_residual:
+                dup1 add mload dup1 jumpi */
+
+            2 0x24 calldataload div
+            0x44
+            0x40
+            loop_start:             // m i s' s
+                /* dup3 dup3 sub       // # bytes remaining in array
+                dup1 31 gt 32 mul swap1 0x1f and add
+                dup1 mload swap jumpi */
+
+                dup2 calldataload
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+                0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+                0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+                16 dup2 div or
+                0x20 mstore
+                4 mload 6 mload 8 mload 10 mload 12 mload 14 mload 16 mload 18 mload
+                20 mload 22 mload 24 mload 26 mload 28 mload 30 mload 32 mload
+                48 mstore8 47 mstore8 46 mstore8 45 mstore8 44 mstore8 43 mstore8 42 mstore8 41 mstore8
+                40 mstore8 39 mstore8 38 mstore8 37 mstore8 36 mstore8 35 mstore8 34 mstore8
+                33 mload dup2 mstore
+
+               /* dup2 0x20 add calldataload
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+                0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+                0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+                16 dup2 div or
+                0x20 mstore
+                4 mload 6 mload 8 mload 10 mload 12 mload 14 mload 16 mload 18 mload
+                20 mload 22 mload 24 mload 26 mload 28 mload 30 mload 32 mload
+                48 mstore8 47 mstore8 46 mstore8 45 mstore8 44 mstore8 43 mstore8 42 mstore8 41 mstore8
+                40 mstore8 39 mstore8 38 mstore8 37 mstore8 36 mstore8 35 mstore8 34 mstore8
+                33 mload dup2 0x10 add mstore
+
+                dup2 0x40 add calldataload
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+                0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+                0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+                16 dup2 div or
+                0x20 mstore
+                4 mload 6 mload 8 mload 10 mload 12 mload 14 mload 16 mload 18 mload
+                20 mload 22 mload 24 mload 26 mload 28 mload 30 mload 32 mload
+                48 mstore8 47 mstore8 46 mstore8 45 mstore8 44 mstore8 43 mstore8 42 mstore8 41 mstore8
+                40 mstore8 39 mstore8 38 mstore8 37 mstore8 36 mstore8 35 mstore8 34 mstore8
+                33 mload dup2 0x20 add mstore
+
+                dup2 0x60 add calldataload
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+                dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+                0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+                0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+                16 dup2 div or
+                0x20 mstore
+                4 mload 6 mload 8 mload 10 mload 12 mload 14 mload 16 mload 18 mload
+                20 mload 22 mload 24 mload 26 mload 28 mload 30 mload 32 mload
+                48 mstore8 47 mstore8 46 mstore8 45 mstore8 44 mstore8 43 mstore8 42 mstore8 41 mstore8
+                40 mstore8 39 mstore8 38 mstore8 37 mstore8 36 mstore8 35 mstore8 34 mstore8
+                33 mload dup2 0x30 add mstore */
+
+                0x10 add
+                swap1 0x20 add
+                swap1
+                dup2 calldatasize gt
+                loop_start jumpi
+
+            pop pop
+            0x20 0x00 mstore
+            dup1 0x20 mstore
+            0x40 add 0x0000000000000000000000000000000000000000000000000000000000000000
+            dup2 mstore
+
+            dup1 0x1f and iszero
+            skip jumpi
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE0 and 0x20 add
+            skip:
+            0
+            return
+                        
+            
+        no_bytes:
+            mstore(0x00, 0x20)
+            mstore(0x20, 0x00)
+            return(0x00, 0x40)
+      /*
+        one_word:
+            0x44 calldataload
+
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+            0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+            16 dup2 div or 0x3f mstore
+            0x23 mload 0x25 mload 0x27 mload 0x29 mload 0x2b mload 0x2d mload 0x2f mload 0x31 mload
+            0x33 mload 0x35 mload 0x37 mload 0x39 mload 0x3b mload 0x3d mload 0x3f mload
+            0x4f mstore8 0x4e mstore8 0x4d mstore8 0x4c mstore8 0x4b mstore8 0x4a mstore8 0x49 mstore8 0x48 mstore8
+            0x47 mstore8 0x46 mstore8 0x45 mstore8 0x44 mstore8 0x43 mstore8 0x42 mstore8 0x41 mstore8
+
+            0x00 dup2 0x40 add mstore
+            0x20 0x00 mstore
+            dup2 0x20 mstore
+            0x60 0 return
+        two_words:
+
+
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+            0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+            16 dup2 div or 0x3f mstore
+            0x23 mload 0x25 mload 0x27 mload 0x29 mload 0x2b mload
+            0x2d mload 0x2f mload 0x31 mload 0x33 mload 0x35 mload
+            0x37 mload 0x39 mload 0x3b mload 0x3d mload 0x3f mload
+            0x4f mstore8 0x4e mstore8 0x4d mstore8 0x4c mstore8
+            0x4b mstore8 0x4a mstore8 0x49 mstore8 0x48 mstore8
+            0x47 mstore8 0x46 mstore8 0x45 mstore8 0x44 mstore8
+            0x43 mstore8 0x42 mstore8 0x41 mstore8
+            0x40 mload
+            0x44 calldataload
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+            0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+            16 dup2 div or 0x3f mstore
+            0x23 mload 0x25 mload 0x27 mload 0x29 mload 0x2b mload
+            0x2d mload 0x2f mload 0x31 mload 0x33 mload 0x35 mload
+            0x37 mload 0x39 mload 0x3b mload 0x3d mload 0x3f mload
+            0x4f mstore8 0x4e mstore8 0x4d mstore8 0x4c mstore8
+            0x4b mstore8 0x4a mstore8 0x49 mstore8 0x48 mstore8
+            0x47 mstore8 0x46 mstore8 0x45 mstore8 0x44 mstore8
+            0x43 mstore8 0x42 mstore8 0x41 mstore8
+            0x50 mstore
+            0x00 dup2 0x40 add mstore
+            0x20 0x00 mstore
+            dup1 0x20 mstore
+            0x80 0 return            
+
+        three_words:
+ 
+            0x84 calldataload
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+            0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+            16 dup2 div or 0x3f mstore
+            0x23 mload 0x25 mload 0x27 mload 0x29 mload 0x2b mload
+            0x2d mload 0x2f mload 0x31 mload 0x33 mload 0x35 mload
+            0x37 mload 0x39 mload 0x3b mload 0x3d mload 0x3f mload
+            0x4f mstore8 0x4e mstore8 0x4d mstore8 0x4c mstore8 0x4b mstore8
+            0x4a mstore8 0x49 mstore8 0x48 mstore8 0x47 mstore8 0x46 mstore8
+            0x45 mstore8 0x44 mstore8 0x43 mstore8 0x42 mstore8 0x41 mstore8
+            0x40 mload
+            0x64 calldataload
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+            0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+            16 dup2 div or 0x3f mstore
+            0x23 mload 0x25 mload 0x27 mload 0x29 mload 0x2b mload
+            0x2d mload 0x2f mload 0x31 mload 0x33 mload 0x35 mload
+            0x37 mload 0x39 mload 0x3b mload 0x3d mload 0x3f mload
+            0x4f mstore8 0x4e mstore8 0x4d mstore8 0x4c mstore8
+            0x4b mstore8 0x4a mstore8 0x49 mstore8 0x48 mstore8
+            0x47 mstore8 0x46 mstore8 0x45 mstore8 0x44 mstore8
+            0x43 mstore8 0x42 mstore8 0x41 mstore8
+            0x40 mload
+            0x44 calldataload
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+            0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+            16 dup2 div or 0x3f mstore
+            0x23 mload 0x25 mload 0x27 mload 0x29 mload 0x2b mload
+            0x2d mload 0x2f mload 0x31 mload 0x33 mload 0x35 mload
+            0x37 mload 0x39 mload 0x3b mload 0x3d mload 0x3f mload
+            0x4f mstore8 0x4e mstore8 0x4d mstore8 0x4c mstore8
+            0x4b mstore8 0x4a mstore8 0x49 mstore8 0x48 mstore8
+            0x47 mstore8 0x46 mstore8 0x45 mstore8 0x44 mstore8
+            0x43 mstore8 0x42 mstore8 0x41 mstore8
+            0x50 mstore
+            0x60 mstore
+            0x00 dup2 0x80 add mstore
+            0x20 0x00 mstore
+            dup1 0x20 mstore
+            0x80 0 return
+
+        four_words:
+        
+            0xa4 calldataload
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+            0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+            16 dup2 div or 0x3f mstore
+            0x23 mload 0x25 mload 0x27 mload 0x29 mload 0x2b mload
+            0x2d mload 0x2f mload 0x31 mload 0x33 mload 0x35 mload
+            0x37 mload 0x39 mload 0x3b mload 0x3d mload 0x3f mload
+            0x4f mstore8 0x4e mstore8 0x4d mstore8 0x4c mstore8 0x4b mstore8
+            0x4a mstore8 0x49 mstore8 0x48 mstore8 0x47 mstore8 0x46 mstore8
+            0x45 mstore8 0x44 mstore8 0x43 mstore8 0x42 mstore8 0x41 mstore8
+            0x40 mload
+            0x84 calldataload
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+            0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+            16 dup2 div or 0x3f mstore
+            0x23 mload 0x25 mload 0x27 mload 0x29 mload 0x2b mload
+            0x2d mload 0x2f mload 0x31 mload 0x33 mload 0x35 mload
+            0x37 mload 0x39 mload 0x3b mload 0x3d mload 0x3f mload
+            0x4f mstore8 0x4e mstore8 0x4d mstore8 0x4c mstore8 0x4b mstore8
+            0x4a mstore8 0x49 mstore8 0x48 mstore8 0x47 mstore8 0x46 mstore8
+            0x45 mstore8 0x44 mstore8 0x43 mstore8 0x42 mstore8 0x41 mstore8
+            0x40 mload
+            0x64 calldataload
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+            0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+            16 dup2 div or 0x3f mstore
+            0x23 mload 0x25 mload 0x27 mload 0x29 mload 0x2b mload
+            0x2d mload 0x2f mload 0x31 mload 0x33 mload 0x35 mload
+            0x37 mload 0x39 mload 0x3b mload 0x3d mload 0x3f mload
+            0x4f mstore8 0x4e mstore8 0x4d mstore8 0x4c mstore8
+            0x4b mstore8 0x4a mstore8 0x49 mstore8 0x48 mstore8
+            0x47 mstore8 0x46 mstore8 0x45 mstore8 0x44 mstore8
+            0x43 mstore8 0x42 mstore8 0x41 mstore8
+            0x40 mload
+            0x44 calldataload
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+            0x9000000000000000000000000000000000000000000000000000000000000000 mulmod add
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+            16 dup2 div or 0x3f mstore
+            0x23 mload 0x25 mload 0x27 mload 0x29 mload 0x2b mload
+            0x2d mload 0x2f mload 0x31 mload 0x33 mload 0x35 mload
+            0x37 mload 0x39 mload 0x3b mload 0x3d mload 0x3f mload
+            0x4f mstore8 0x4e mstore8 0x4d mstore8 0x4c mstore8
+            0x4b mstore8 0x4a mstore8 0x49 mstore8 0x48 mstore8
+            0x47 mstore8 0x46 mstore8 0x45 mstore8 0x44 mstore8
+            0x43 mstore8 0x42 mstore8 0x41 mstore8
+            0x50 mstore
+            0x60 mstore
+            0x70 mstore
+            0x00 dup2 0x80 add mstore
+            0x20 0x00 mstore
+            dup1 0x20 mstore
+            0x80 0 return
+*/
+        one_byte:
+            /* calldataload(0x44)
+            0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            dup2 0xEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEF or not
+                // multiply by 2**255 + 2**252, trigger integer overflow so that
+                // every 5th bit becomes every (4th + 1st) bit
+            0x9000000000000000000000000000000000000000000000000000000000000000
+            mulmod
+                // combine back into w
+            add
+            // mask out the top 4 bits of every byte
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F and
+            
+            dup1 1 byte // 0b
+            swap1 0 byte      // 0a
+            16 mul or   // ab
+            0x40 mstore8
+            0x00 0x41 mstore
+            0x01 0x20 mstore
+            0x20 0x00 mstore
+            0x60 0x00 return */
+        
+        two_byte:
+
+        three_byte:
+
+        four_byte:
+
+        five_byte:
+
+        six_byte:
+
+        seven_byte:
+
+        eight_byte:
+
+        nine_byte:
+
+        ten_byte:
+
+        thirty_two_byte:
+
+
+        sixty_four_byte:
+
+
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

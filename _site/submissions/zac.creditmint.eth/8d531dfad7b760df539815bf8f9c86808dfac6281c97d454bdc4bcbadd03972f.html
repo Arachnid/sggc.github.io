@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 8d531dfa...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/indexof">String search</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a>
+        <tr><th>Submitted at</th><td>2018-41-24</td></tr>
+        <tr><th>Gas used</th><td>36569</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity ^0.4.23;
+
+
+contract IndexOf {
+    /**
+     * @dev Returns the index of the first occurrence of `needle` in `haystack`,
+     *      or -1 if `needle` is not found in `haystack`.
+     *
+     * Input strings may be of any length &lt;2^255.
+     *
+     * @return The index of `needle` in `haystack`, or -1 if not found.
+     */
+    function indexOf(string, string) external view returns(int) {
+        assembly {
+            let _needleSize := calldataload(add(calldataload(0x24), 0x04))
+            if gt(_needleSize, calldataload(0x44)) {
+                mstore(0x00, sub(0, 1))
+                return(0x00, 0x20)
+            }
+            if iszero(_needleSize) {
+                mstore(0x00, 0x00)
+                return(0x00, 0x20)
+            }
+            if eq(_needleSize, 1) {
+                indexOfSingleByte()
+            }
+            if eq(_needleSize, 2) {
+                indexOfTwoBytes()
+            }
+            indexOfManyBytes()
+
+            function testWordAtIndex(calldataIndex, needle_calldata_offset, testOffset) -&gt; v {
+                let needleLength := calldataload(needle_calldata_offset)
+                let residual := and(calldataload(needle_calldata_offset), 0x1f)
+                let a := sub(add(calldataIndex, testOffset), needleLength)
+                let haystack_to_needle_offset := sub(add(needle_calldata_offset, 0x20), a)
+                let r
+                let haystack_endpoint
+                jumpi(skip_residuals, iszero(residual))
+                    mstore(0x80, xor(calldataload(a), calldataload(add(a, haystack_to_needle_offset))))
+                    v := iszero(mload(add(0x60, residual)))
+                    // v := lt(sub(residual, 0x01), and(mload(mod(and(r, sub(0, r)), 71)), 0x1f))
+                    jumpi(end_subroutine, iszero(v))
+                    a := add(a, residual)
+
+                skip_residuals:
+
+                haystack_endpoint := add(a, sub(needleLength, residual))
+                jumpi(end_subroutine, gt(add(a, 0x01), haystack_endpoint))
+                check_needle_words:
+                        v := eq(calldataload(a), calldataload(add(a, haystack_to_needle_offset)))
+                        a := add(a, 0x20)
+                        jumpi(check_needle_words, and(v, lt(a, haystack_endpoint)))
+                end_subroutine:
+            }
+
+            function indexOfManyBytes() {
+                let minusOne := not(0)
+                let offset := add(calldataload(0x24), 0x04)
+                let firstByteComparator, lastByteComparator, randomByteComparator, leastSignificantFlag
+                let lastByteOffset := sub(calldataload(offset), 0x01)
+                let randomByteOffset := add(mod(
+                    mul(gas, 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47),
+                    sub(lastByteOffset, 0x02)
+                ), 0x01)
+                let w, testIndex
+                let highest_matching_index := minusOne
+                let calldataIterator := add(0x64, lastByteOffset)
+                get_needle_comparators:
+                    firstByteComparator := mul(
+                        and(calldataload(add(offset, 0x01)), 0xff),
+                        0x0101010101010101010101010101010101010101010101010101010101010101
+                    )
+                    lastByteComparator := mul(
+                        and(calldataload(add(offset, add(lastByteOffset, 0x01))), 0xff),
+                        0x0101010101010101010101010101010101010101010101010101010101010101
+                    )
+                    randomByteComparator := mul(
+                        and(calldataload(add(offset, add(randomByteOffset, 0x01))), 0xff),
+                        0x0101010101010101010101010101010101010101010101010101010101010101
+                    )
+                
+                mstore(0x20, 0x0b1809021916000f070300000000171c001400100000000d040005001e010006)
+                mstore(0x40, 0x000000001f0c001d00000a001500001a1b110000001200002008000e00000013)
+                // We want to iterate over our haystack in word-chunks.
+                // We're going to start by comparing the *last* byte in our sequence to we should start at a position that is
+                // equal to start of haystack + size of our needle
+                iterate_over_words:
+                    w := and(
+                            not(
+                                add(
+                                    or(
+                                        xor(calldataload(calldataIterator), lastByteComparator),
+                                        // xor(calldataload(sub(calldataIterator, lastByteOffset)), firstByteComparator)
+                                        or(
+                                            xor(calldataload(sub(calldataIterator, lastByteOffset)), firstByteComparator),
+                                            xor(calldataload(sub(calldataIterator, sub(lastByteOffset, randomByteOffset))), randomByteComparator)
+                                        )
+                                    ),
+                                    0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f
+                                )
+                            ),
+                            0x8080808080808080808080808080808080808080808080808080808080808080
+                        )
+
+                    jumpi(iterate_over_matches, w)
+                    calldataIterator := add(calldataIterator, 0x20)
+                    jumpi(iterate_over_words, lt(calldataIterator, offset))
+                    mstore(0x00, minusOne)
+                    return(0x00, 0x20)
+
+                    iterate_over_matches:
+                        leastSignificantFlag := and(w, sub(0, w))
+                        testIndex := and(mload(mod(leastSignificantFlag, 71)), 0xff)
+                        jumpi(add_to_index, testWordAtIndex(calldataIterator, offset, testIndex))
+                            w := sub(w, leastSignificantFlag)
+                            jumpi(iterate_over_matches, w)
+                            
+                            jumpi(found_match, sub(highest_matching_index, not(0)))
+                            calldataIterator := add(calldataIterator, 0x20)
+                            jumpi(iterate_over_words, lt(calldataIterator, offset))
+                            jump(found_no_match)
+                        add_to_index:
+                            highest_matching_index := testIndex
+                            w := sub(w, leastSignificantFlag)
+                            jumpi(iterate_over_matches, w)
+                        
+                    jumpi(found_match, sub(highest_matching_index, not(0)))
+                    calldataIterator := add(calldataIterator, 0x20)
+                    jumpi(iterate_over_words, lt(calldataIterator, offset))
+                    found_no_match:
+                        mstore(0x00, minusOne)
+                        return(0x00, 0x20)
+
+                    found_match:
+                        mstore(0x00, add(highest_matching_index, sub(sub(calldataIterator, lastByteOffset), 0x65)))
+                        return(0x00, 0x20)
+
+            }
+
+
+
+            function indexOfSingleByte() {
+                mstore(0x20, 0x000a1e170b0800011c1800150000090e000614020000000019001a001016001b)
+                mstore(0x40, 0x000000131100000f00001f000700000c0d03000000040000121d000000000005)
+
+                let testByte := and(calldataload(add(calldataload(0x24), 0x05)), 0xff)
+                let testVector := mul(
+                    testByte,
+                    0x0101010101010101010101010101010101010101010101010101010101010101
+                )
+                let calldataIndex := 0x64
+                let end := add(calldataload(0x24), 0x04)
+                let w := 0x00
+                for {} lt(calldataIndex, end) {calldataIndex := add(calldataIndex, 0x20)} {
+                    w := and(not(add(xor(calldataload(calldataIndex), testVector), 0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f)), 0x8080808080808080808080808080808080808080808080808080808080808080)
+                    if w {
+                        w := mulmod(w, 0xfe00000000000000000000000000000000000000000000000000000000000001, not(0))
+                        w := or(w, div(w, 0x100))
+                        w := or(w, div(w, 0x10000))
+                        w := or(w, div(w, 0x100000000))
+                        w := or(w, div(w, 0x10000000000000000))
+                        w := mod(add(or(w, div(w, 0x100000000000000000000000000000000)), 0x01), 71)
+                        let r := add(and(mload(w), 0xff), sub(calldataIndex, 0x64))
+                        mstore(0x00, r)
+                        return(0x00, 0x20)
+                    }
+                }
+                mstore(0x00, not(0))
+                return(0x00, 0x20)
+            }
+
+            function indexOfTwoBytes() {
+                mstore(0x20, 0x000a1e170b0800011c1800150000090e000614020000000019001a001016001b)
+                mstore(0x40, 0x000000131100000f00001f000700000c0d03000000040000121d000000000005)
+
+                let firstByte := mul(
+                    and(calldataload(add(calldataload(0x24), 0x05)), 0xff),
+                    0x0101010101010101010101010101010101010101010101010101010101010101
+                )
+                let secondByte := mul(
+                    and(calldataload(add(calldataload(0x24), 0x06)), 0xff),
+                    0x0101010101010101010101010101010101010101010101010101010101010101
+                )
+                let calldataIndex := 0x64
+                let end := add(calldataload(0x24), 0x04)
+                let w := 0x00
+                for {} lt(calldataIndex, end) {calldataIndex := add(calldataIndex, 0x20)} {
+                    w := and(
+                            not(
+                                add(
+                                    or(
+                                        xor(calldataload(calldataIndex),firstByte),
+                                        xor(calldataload(add(calldataIndex, 0x01)), secondByte)
+                                    ),
+                                    0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f
+                                )
+                            ), 
+                            0x8080808080808080808080808080808080808080808080808080808080808080
+                        )
+                    if w {
+                        w := mulmod(w, 0xfe00000000000000000000000000000000000000000000000000000000000001, not(0))
+                        w := or(w, div(w, 0x100))
+                        w := or(w, div(w, 0x10000))
+                        w := or(w, div(w, 0x100000000))
+                        w := or(w, div(w, 0x10000000000000000))
+                        w := mod(add(or(w, div(w, 0x100000000000000000000000000000000)), 0x01), 71)
+                        let r := add(and(mload(w), 0xff), sub(calldataIndex, 0x64))
+                        mstore(0x00, r)
+                        return(0x00, 0x20)
+                    }
+                }
+                mstore(0x00, not(0))
+                return(0x00, 0x20)
+            }
+        }
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

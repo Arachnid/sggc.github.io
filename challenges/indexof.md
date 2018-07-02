@@ -1,0 +1,4 @@
+---
+layout: challenge
+challenge: IndexOf
+---

@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission b89fff26...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/sort">Integer sorting</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a>
+        <tr><th>Submitted at</th><td>2018-00-29</td></tr>
+        <tr><th>Gas used</th><td>525934</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity 0.4.24;
+
+contract Sort {
+    function sort(uint[] /* input */) public pure returns(uint[]) {
+
+        assembly {
+            let tmp := 0
+            let a := 0
+            let b := 0
+            let done := 0
+
+            // @TODO: Mulitply by 32 soon! 
+            let length := calldataload(36)
+
+            let output := mload(0x40)
+
+            // Trivial case; 0 or 1 elements; already sorted
+            if lt(length, 2) {
+                tmp := sub(calldatasize, 4)
+                calldatacopy(output, 4, tmp)
+                return(output, tmp)
+            }
+
+            // Store the dynlink0 and length for the output
+            mstore(output, 32)
+            mstore(add(output, 32), length)
+            let input := add(output, 64)
+
+            // Convert length to bytes
+            length := mul(32, length)
+
+            // tmp =&gt; value
+            // a   =&gt; lastValue
+            // b   =&gt; count of out-of-order elements
+            let io := 68
+            let eo := add(io, length)
+            for {} lt(io, eo) {} {
+                tmp := calldataload(io)
+                b := add(b, gt(a, tmp))
+                a := tmp
+                // @TODO: May be able to make inpur or io an offset of the other?
+                mstore(input, tmp)
+                io := add(io, 32)
+                input := add(input, 32)
+            }
+
+            // No elements out-of-order; already sorted
+            if iszero(b) {
+                return(output, sub(calldatasize, 4))
+            }
+
+            input := add(output, 64)
+
+            // If over 25% of the elements are out of order, reverse the list
+            a := mul(32, b)
+            if lt(sub(length, a), div(length, 8)) {
+                io := input
+                let jo := add(input, sub(length, 32))
+                for {} lt(io, jo) {} {
+                    tmp := mload(io)
+                    mstore(io, mload(jo))
+                    mstore(jo, tmp)
+                    io := add(io, 32)
+                    jo := sub(jo, 32)
+                }
+                b := sub(calldataload(36), b)
+            }
+
+            // QuickSort
+            // See: https://www.geeksforgeeks.org/iterative-quick-sort/
+
+            // More than 8 elements out of order; quicksort-ish
+            if gt(b, 8) {
+
+                /// Quicksort
+
+                let loo := input
+                let hio := add(input, sub(length, 32))
+                let stackTop := add(output, add(length, 64))
+                let stackBase := stackTop
+
+                let jo := 0
+
+                done := 1
+                for {} done {} {
+
+                    // Choose a pivot
+                    tmp := mload(and(div(add(loo, hio), 2), 0xffffffffe0))
+
+                    /// Partition
+
+                    io := sub(loo, 32)
+                    jo := add(hio, 32)
+                    //done := 1
+                    for {} done {} {
+
+                        // Not done
+                        done := 1
+                        for {} done {} {
+                            io := add(io, 32)
+                            a := mload(io)
+                            done := lt(a, tmp)
+                        }
+
+                        // Not done
+                        done := 1
+                        for {} done {} {
+                            jo := sub(jo, 32)
+                            b := mload(jo)
+                            done := gt(b, tmp)
+                        }
+
+                        if lt(io, jo) {
+                            mstore(io, b)
+                            mstore(jo, a)
+                            done := 1
+                        }
+                    }
+
+                    //done := 0
+
+                    /// Pick new lo and hi
+
+                    //if (j &gt; lo):
+                    //let cond := gt(jo, loo)
+                    //if (j &gt; lo + 8):
+                    let cond := gt(jo, add(loo, 256))
+                    if cond {
+
+                        //if (j + 1 &lt; hi):
+                        //if (j + 1 + 8 &lt; hi):
+                        //if lt(add(jo, 32), hio)
+                        if lt(add(jo, 288), hio) {
+                            mstore(stackTop, add(jo, 32))
+                            stackTop := add(stackTop, 32)
+                            mstore(stackTop, hio)
+                            stackTop := add(stackTop, 32)
+                        }
+                        hio := jo
+                        done := 1
+                    }
+
+                    if iszero(cond) {
+
+                    // else if (j + 1 &lt; hi):
+                    // else if (j + 1 + 8  &lt; hi):
+                        //cond := lt(add(jo, 32), hio)
+                        cond := lt(add(jo, 288), hio)
+                        if cond {
+                            loo := add(jo, 32)
+                            done := 1
+                        }
+
+                        if iszero(cond) {
+
+                            // else if (stackTop != 0):
+                            //cond := eq(stackTop, stackBase)
+                            //if iszero(cond) {
+                            if gt(stackTop, stackBase) {
+                                stackTop := sub(stackTop, 32)
+                                hio := mload(stackTop)
+                                stackTop := sub(stackTop, 32)
+                                loo := mload(stackTop)
+                                done := 1
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Linear Insertion Sort
+            // See: https://en.wikipedia.org/wiki/Insertion_sort
+
+            //let inputBase := add(input, 32)
+            // for (var i = 0; i &lt; length; i++):
+            io := add(input, 32)
+            let ie := add(input, length)
+            for {} lt(io, ie) {} {
+
+                // a = input[i]
+                // j = i
+                let tmp3 := mload(io)
+                let jo := io
+
+                // while (j != 0):
+                done := 0
+                for { } iszero(done) { } {
+                    if eq(jo, input) { done := 1 }
+                    if iszero(done) {
+                        // b = input[j - 1]
+                        let tmp2 := mload(sub(jo, 32))
+
+                        // if (b &gt; a): input[j--] = b
+                        done := 1
+                        if gt(tmp2, tmp3) {
+                            mstore(jo, tmp2)
+                            jo := sub(jo, 32)
+                            done := 0
+                        }
+                    }
+                }
+
+                // input[j] = a
+                mstore(jo, tmp3)
+                io := add(io, 32)
+            }
+
+            return(output, add(length, 64))
+        }
+    }
+}
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

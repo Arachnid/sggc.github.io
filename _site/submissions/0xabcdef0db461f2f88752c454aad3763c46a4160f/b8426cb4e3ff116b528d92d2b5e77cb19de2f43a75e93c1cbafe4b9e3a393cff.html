@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission b8426cb4...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/indexof">String search</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/">0xabcdef0db461f2f...</a>
+        <tr><th>Submitted at</th><td>2018-28-03</td></tr>
+        <tr><th>Gas used</th><td>57906</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity 0.4.24;
+
+contract IndexOf {
+    /**
+     * @dev Returns the index of the first occurrence of `needle` in `haystack`,
+     *      or -1 if `needle` is not found in `haystack`.
+     *
+     * Input strings may be of any length &lt;2^255.
+     *
+     * @param haystack The string to search.
+     * @param needle The string to search for.
+     * @return The index of `needle` in `haystack`, or -1 if not found.
+     */
+    function indexOf(string haystack, string needle) public pure returns(int) {
+        assembly {
+
+            let hsLen := calldataload(0x44)
+            let nLen := calldataload(add(calldataload(0x24), 0x04))
+
+            if iszero(nLen) {
+                mstore(0x40, 0x0000000000000000000000000000000000000000000000000000000000000000)
+                return(0x40, 0x20)
+            }
+
+            if lt(hsLen, nLen) {
+                mstore(0x40, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+                return(0x40, 0x20)
+            }
+
+            function findOne(hsIdxL, hsIdxR, nByte) {
+                for { let idx := hsIdxL }
+                    lt(idx, hsIdxR)
+                    { idx := add(idx, 0x1) } {
+                    if eq(nByte,
+                          and(
+                              calldataload(idx),
+                              0xff00000000000000000000000000000000000000000000000000000000000000)) {
+                        mstore(0x20, sub(idx, hsIdxL))
+                        idx := hsIdxR
+                    }
+                }
+            }
+
+            function findFew(hsIdxL, hsIdxR, nUint, nMask) {
+                for { let idx := hsIdxL }
+                    lt(idx, hsIdxR)
+                    { idx := add(idx, 0x1) } {
+                    if eq(nUint, and(calldataload(idx), nMask)) {
+                        mstore(0x20, sub(idx, hsIdxL))
+                        idx := hsIdxR
+                    }
+                }
+            }
+
+            function findUint(hsIdxL, hsIdxR, nUint) {
+                for { let idx := hsIdxL }
+                    lt(idx, hsIdxR)
+                    { idx := add(idx, 0x1) } {
+                    if eq(nUint, calldataload(idx)) {
+                        mstore(0x20, sub(idx, hsIdxL))
+                        idx := hsIdxR
+                    }
+                }
+            }
+
+            function findMuch(hsIdxL, hsIdxR, nIdxL, _nLen) {
+                let nLeft := mod(_nLen, 0x20)
+                let nIdxR := sub(add(nIdxL, _nLen), nLeft)
+                let nUint := calldataload(nIdxL)
+                for { let idx := hsIdxL }
+                    lt(idx, hsIdxR)
+                    { idx := add(idx, 0x1) } {
+                    if eq(nUint, calldataload(idx)) {
+                        let idx2 := add(nIdxL, 0x20)
+                        let idx3 := idx
+                        for { } lt(idx2, nIdxR) { } {
+                            idx3 := add(idx3, 0x20)
+                            switch eq(calldataload(idx2), calldataload(idx3))
+                            case 1 { idx2 := add(idx2, 0x20) }
+                            default { idx2 := add(nIdxR, 0x01) }
+                        }
+                        if eq(idx2, nIdxR) {
+                            switch iszero(nLeft)
+                            case 1 {
+                                mstore(0x20, sub(idx, hsIdxL))
+                                idx := hsIdxR
+                            }
+                            default {
+                                if eq(
+                                    calldataload(idx2),
+                                    and(
+                                        calldataload(
+                                            add(idx3, 0x20)),
+                                            not(
+                                                sub(
+                                                    exp(
+                                                        0x02,
+                                                        mul(0x08, nLeft)),
+                                                    0x01)))) {
+                                    mstore(0x20, sub(idx, hsIdxL))
+                                    idx := hsIdxR
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            mstore(0x20, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+            switch nLen
+            case 1 {
+                findOne(
+                    0x64,
+                    add(0x64, hsLen),
+                    calldataload(add(calldataload(0x24), 0x24)))
+            }
+            case 32 {
+                findUint(
+                    0x64,
+                    sub(add(0x64, hsLen), 0x1f),
+                    calldataload(add(calldataload(0x24), 0x24)))
+            }
+            default {
+                if lt(nLen, 32) {
+                    findFew(
+                        0x64,
+                        sub(add(0x64, hsLen), sub(nLen, 0x01)),
+                        calldataload(add(calldataload(0x24), 0x24)),
+                        not(
+                            sub(
+                                exp(
+                                    0x02,
+                                    mul(0x08, nLen)),
+                                0x01)))
+                }
+                findMuch(
+                    0x64,
+                    sub(add(0x64, hsLen), sub(nLen, 0x01)),
+                    add(calldataload(0x24), 0x24),
+                    nLen)
+            }
+            return(0x20, 0x20)
+        }
+    }
+}
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

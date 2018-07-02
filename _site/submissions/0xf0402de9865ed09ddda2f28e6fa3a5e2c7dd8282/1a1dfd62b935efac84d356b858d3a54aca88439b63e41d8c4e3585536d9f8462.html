@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 1a1dfd62...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/sort">Integer sorting</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0xf0402de9865ed09ddda2f28e6fa3a5e2c7dd8282/">0xf0402de9865ed09...</a>
+        <tr><th>Submitted at</th><td>2018-27-24</td></tr>
+        <tr><th>Gas used</th><td>1717119</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity 0.4.24;
+
+contract Sort {
+
+    /**
+     * @dev Sorts a list of integers in ascending order.
+     *
+     * The input list may be of any length.
+     *
+     * @param input The list of integers to sort.
+     * @return The sorted list.
+     */
+    function sort(uint[] input) public pure returns (uint[]) {
+        if (input.length == 0) {
+            return input;
+        }
+        
+        uint min;
+        uint numBuckets;
+        uint increment;
+        (min, numBuckets, increment) = getBucketInfo(input);
+        
+        uint[][] memory buckets = new uint[][](numBuckets);
+        uint[] memory bucketLens = new uint[](numBuckets);
+        uint[] memory bucketHeights = new uint[](numBuckets);
+        
+        for (uint x = 0; x &lt; input.length; x++) {
+            uint incrBucket = (input[x] - min) / increment;
+            bucketLens[incrBucket] = bucketLens[incrBucket] + 1;
+        }
+        
+        for (x = 0; x &lt; numBuckets; x++) {
+            buckets[x] = createEmptyBucket(bucketLens[x]);
+        }
+        
+        for (x = 0; x &lt; input.length; x++) {
+            uint bucketNum = (input[x] - min) / increment;
+            uint[] memory bucket = buckets[bucketNum];
+            bucket[bucketHeights[bucketNum]] = input[x];
+            bucketHeights[bucketNum] = bucketHeights[bucketNum] + 1;
+        }
+        
+        min = 0;
+        for (x = 0; x &lt; numBuckets; x++) {
+            uint[] memory sortedBucket = insertionSort(buckets[x], bucketLens[x]);
+            
+            for (increment = 0; increment &lt; bucketLens[x]; increment++) {
+                input[min++] = sortedBucket[increment];
+            }
+        }
+        
+        return input;
+    }
+    
+    function createEmptyBucket(uint len) public pure returns (uint[] memory bucket) {
+        uint[] memory newBucket = new uint[](len);
+        return newBucket;
+    }
+    
+    function getBucketInfo(uint[] input) public pure returns (uint minimum, uint numBuckets, uint increment) {
+        minimum = min(input);
+        numBuckets = ceil(input.length, 16);
+        increment = ceil(max(input) - minimum + 1, numBuckets);
+    }
+    
+    function insertionSort(uint[] bucket, uint bucketLen) public pure returns (uint[]) {
+        for (uint i = 0; i &lt; bucketLen; i++) {
+            uint min = bucket[i];
+            uint minIndex = i;
+            for (uint j = i + 1; j &lt; bucketLen; j++) {
+                uint jval = bucket[j];
+                if (jval &lt; min) {
+                    min = jval;
+                    minIndex = j;
+                }
+            }
+            uint temp = bucket[i];
+            bucket[i] = min;
+            bucket[minIndex] = temp;
+        }
+        
+        return bucket;
+    }
+    
+    function min(uint[] input) public pure returns (uint) {
+        uint minValue = input[0];
+        
+        for (uint x = 1; x &lt; input.length; x++) {
+            uint test = input[x];
+            if (test &lt; minValue) {
+                minValue = test;
+            }
+        }
+        
+        return minValue;
+    }
+    
+    function max(uint[] input) public pure returns (uint) {
+        uint maxValue = input[0];
+        
+        for (uint x = 1; x &lt; input.length; x++) {
+            uint test = input[x];
+            if (test &gt; maxValue) {
+                maxValue = test;
+            }
+        }
+        
+        return maxValue;
+    }
+
+    function ceil(uint numerator, uint denominator) public pure returns (uint) {
+        return (numerator + denominator - 1) / denominator;
+    }
+
+}
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

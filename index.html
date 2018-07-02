@@ -1,0 +1,102 @@
+---
+layout: base
+title: 1st Solidity Gas Golfing Contest
+---
+<div class="container">
+    <h1>1st Solidity Gas Golfing Contest</h1>
+    <p>The Solidity Gas Golfing Contest was a competition for Solidity coders to produce the most gas-efficient code they can for a series of straightforward challenges. The 1st SGGC ran from 23 May to 30 June 2018.</p>
+    <p>Each challenge is divided into "Standard" and "Wild" categories. Entries in the "Wild" category may use any Solidity language feature, while entries in the "Standard" category are prohibited from using inline assembly.</p>
+    <p>The winner of each track received a 1 ether prize, sponsored by <a href="https://twitter.com/chain_security/status/1001031872783224832">ChainSecurity</a> and <a href="https://twitter.com/CryptoFinLabs/status/1004791972861640704">CryptoFin</a>.</p>
+    <p>Templates and documentation for each of the challenges, and test vectors to check code against, are at <a href="https://github.com/Arachnid/sggc">this truffle project</a> and <a href="https://github.com/embark-framework/sggc">this embark project</a>. Note that the test vectors used by the SGGC server are different from those provided.</p>
+</div>
+<div class="container">
+    <h1><a id="leaderboard">Leaderboard</a></h1>
+    <p>To qualify for the leaderboard, an entrant must have submitted valid solutions for all five challenges. Their score is the sum of the gas used for their best submission for each challenge.</p>
+    <div class="row">
+        <div class="col-lg-6">
+            <h3>Standard</h3>
+            {% assign standardLeaders=site.pages|where:"layout","user"|where_exp:"item","item.standardGas != 'None'"|sort:"standardGas" %}
+            <table class="table">
+                <thead>
+                    <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                </thead>
+                {% for leader in standardLeaders %}
+                    <tr><td>{{ forloop.index }}</td><td><a href="/submissions/{{leader.submitter}}/">{{ leader.submitter }}</a></td><td>{{ leader.standardGas }}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="col-lg-6">
+            <h3>Wild</h3>
+            {% assign wildLeaders=site.pages|where:"layout","user"|where_exp:"item","item.wildGas != 'None'"|sort:"wildGas" %}
+            <table class="table">
+                <thead>
+                    <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                </thead>
+                {% for leader in wildLeaders %}
+                    <tr><td>{{ forloop.index }}</td><td><a href="/submissions/{{leader.submitter}}/">{{ leader.submitter }}</a></td><td>{{ leader.wildGas }}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <h1>Challenge high scores</h1>
+    {% for challenge in site.data.challenges %}
+        <h2><a href="/challenges/{{challenge[0]|downcase}}">{{ challenge[1].title }}</a></h2>
+        <p>{{ challenge[1].description }}</p>
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>Standard</h3>
+                <table class="table">
+                    <thead>
+                        <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                    </thead>
+                    {% assign scores=site.pages|where:"layout","submission"|where:"challenge",challenge[0]|where:"wild",false|sort:"gas"|group_by:"submitter" %}
+                    {% for score in scores limit:10 %}
+                        <tr><td><a href="{{score.items[0].url}}">{{ forloop.index }}</a></td><td><a href="/submissions/{{score.name}}/">{{ score.name|truncate:20 }}</a></td><td>{{ score.items[0].gas }}</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <div class="col-lg-6">
+                <h3>Wild</h3>
+                <table class="table">
+                    <thead>
+                        <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                    </thead>
+                    {% assign scores=site.pages|where:"layout","submission"|where:"challenge",challenge[0]|sort:"gas"|group_by:"submitter" %}
+                    {% for score in scores limit:10 %}
+                        <tr><td><a href="{{score.items[0].url}}">{{ forloop.index }}</a></td><td><a href="/submissions/{{score.name}}/">{{ score.name|truncate:20 }}</a></td><td>{{ score.items[0].gas }}</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+<div class="container">
+    <h1><a id="faq">FAQ</a></h1>
+
+    <h2>What version of Solidity are you using?</h2>
+    <p>SGCC is pinned to use version 0.4.24. Optimisation is enabled and set to 200 iterations.</p>
+
+    <h2>Why do some entrants have names instead of addresses?</h2>
+    <p>SGGC supports <a href="https://ens.domains/">ENS</a> reverse resolution. If an entrant supplies an address that has reverse resolution configured, we will display the entrant's ENS name instead of their address.</p>
+    <p>You can configure your own ENS reverse record on the 'Reverse Record' tab of <a href="https://manager.ens.domains/">the ENS Manager DApp</a>.</p>
+
+    <h2>Is there a prize?</h2>
+    <p>ChainSecurity <a href="https://twitter.com/chain_security/status/1001031872783224832">have offered</a> 0.5 ETH each for the winner of the Standard and Wild tracks.</p>
+    <p>CryptoFin have <a href="https://blog.cryptofin.io/driving-solidity-gas-fees-into-the-green-84f9656b6932">matched this contribution</a>, bringing the total prize to 1 ether for each track.</p>
+    <p>In addition, you can expect the adulation of your peers and colleagues. We may also create an <a href="https://eips.ethereum.org/EIPS/eip-721">NFT</a> for the winners.</p>
+
+    <h2>Why don't I show up on the leaderboard?</h2>
+    <p>To be included on the leaderboard, you must have submitted at least one entry in each challenge. Your score will be the sum of the gas usage your best entry for each challenge.</p>
+
+    <h2>Why is my submission failing? It works in Truffle!</h2>
+    <p>The SGGC server has a secret set of test vectors, different from the public ones. They will test some edge cases that the public set do not - make sure your code handles every scenario you can think of!</p>
+
+    <h2>Why is the gas usage of my submission different to Truffle?</h2>
+    <p>The SGGC server has a secret set of test vectors, which will result in different gas consumption. It also measures gas usage slightly differently to truffle, counting only the execution cost, while Truffle also accounts for the gas cost for the call data.</p>
+    <p>If your submission is using a lot more gas than expected, check to see how your code might handle worst-case inputs. Can you craft an input that makes it perform poorly?</p>
+
+    <h2>Can other entrants see my submission?</h2>
+    <p>During the contest, only the scores of the leading players and entries are available. Once the contest is over, the source of all valid entries will be published on GitHub.</p>
+</div>

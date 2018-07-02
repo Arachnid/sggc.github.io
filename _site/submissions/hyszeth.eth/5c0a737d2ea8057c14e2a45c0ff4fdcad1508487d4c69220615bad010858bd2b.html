@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 5c0a737d...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/brainfuck">BrainFuck interpreter</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a>
+        <tr><th>Submitted at</th><td>2018-14-28</td></tr>
+        <tr><th>Gas used</th><td>948248</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ *
+ *
+ *
+ * Author: Greg Hysen (@hysz)
+ * Date: 05/2018
+ *
+ */
+
+pragma solidity 0.4.24;
+
+contract BrainFuck {
+    uint constant BITSHIFT = 0x100000000000000000000000000000000000000000000000000000000000000;
+    bytes32 constant CMD_MASK = 0xff00000000000000000000000000000000000000000000000000000000000000;
+    bytes32 constant N_MASK = 0x00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+    uint constant PLUS = 0x2B;
+    uint constant COMMA = 0x2C;
+    uint constant MINUS = 0x2D;
+    uint constant PERIOD = 0x2E;
+    uint constant L_SHIFT = 0x3C;
+    uint constant R_SHIFT = 0x3E;
+    uint constant L_BRACKET = 0x5B;
+    uint constant R_BRACKET = 0x5D;
+    uint constant PLUS_SHIFTED = 0x2B00000000000000000000000000000000000000000000000000000000000000;
+    uint constant COMMA_SHIFTED = 0x2C00000000000000000000000000000000000000000000000000000000000000;
+    uint constant MINUS_SHIFTED = 0x2D00000000000000000000000000000000000000000000000000000000000000;
+    uint constant PERIOD_SHIFTED = 0x2E00000000000000000000000000000000000000000000000000000000000000;
+    uint constant L_SHIFT_SHIFTED = 0x3C00000000000000000000000000000000000000000000000000000000000000;
+    uint constant R_SHIFT_SHIFTED = 0x3E00000000000000000000000000000000000000000000000000000000000000;
+    uint constant L_BRACKET_SHIFTED = 0x5B00000000000000000000000000000000000000000000000000000000000000;
+    uint constant R_BRACKET_SHIFTED = 0x5D00000000000000000000000000000000000000000000000000000000000000;
+
+
+    /**
+     * @dev Executes a BrainFuck program, as described at https://en.wikipedia.org/wiki/Brainfuck.
+     *
+     * Memory cells, input, and output values are all expected to be 8 bit
+     * integers. Incrementing past 255 should overflow to 0, and decrementing
+     * below 0 should overflow to 255.
+     *
+     * Programs and input streams may be of any length. The memory tape starts
+     * at cell 0, and will never be moved below 0 or above 1023. No program will
+     * output more than 1024 values.
+     *
+     * @param program The BrainFuck program.
+     * @param input The program's input stream.
+     * @return The program's output stream. Should be exactly the length of the
+     *          number of outputs produced by the program.
+     */
+    function execute(bytes program, bytes input)
+        public
+        pure
+        //returns(bytes32[])
+        returns(bytes)
+    {
+        // Analyze
+        // Use a statically-sized `data` array so that the compiler can do bounds-checking.
+        // This is o/w a very expensive operation.
+        uint[2048] memory data;    // store output at end of data
+        uint programLength = program.length;
+        (
+            bool hasOutput,
+            bytes32[] memory cleanProgram,
+	        uint cleanProgramLength
+        ) = analyze(program, data, program.length);
+        if(!hasOutput) return;
+        //return cleanProgram;
+
+
+        programLength = runProgram(
+            cleanProgram,
+            input,
+            data,
+            0,
+            1024,
+            0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff,
+            0,
+            cleanProgramLength
+        );
+
+        bytes memory output = new bytes(programLength);
+        for(uint i = 0; i != programLength; ++i) {
+            output[i] = byte(data[i]);
+        }
+        return output;
+    }
+
+    function analyze(bytes program, uint[2048] memory data, uint programLength) internal pure returns (bool hasOutput, bytes32[] memory cleanProgram, uint cleanPPtr) {
+        // A lookup table for valid characters.
+        bool[256] memory lookup;
+        lookup[PLUS] = true;
+        lookup[COMMA] = true;
+        lookup[MINUS] = true;
+        lookup[PERIOD] = true;
+        lookup[L_SHIFT] = true;
+        lookup[R_SHIFT] = true;
+        lookup[L_BRACKET] = true;
+        lookup[R_BRACKET] = true;
+
+        // Check if there's output and count branches
+        // 1. Redundant instructions are grouped.
+        // 2. NOP characters are filtered out.
+        // 3. An inline jumptable is created for `[` and `]`
+
+        uint nBranches;
+        uint b;
+        uint count = 1;
+        uint balance;
+        cleanProgram = new bytes32[](programLength);
+        uint i;
+        do {
+            b = uint(program[i++]);
+            if(b == L_BRACKET) {
+                data[balance++] = cleanPPtr;
+                cleanProgram[cleanPPtr++] = bytes32(uint(b) * BITSHIFT);
+            } else if(b == R_BRACKET) {
+                uint jumpLocation = data[--balance];
+                cleanProgram[jumpLocation] |= bytes32(cleanPPtr+1); // next instruction after ]
+                cleanProgram[cleanPPtr++] = bytes32(b * BITSHIFT | (jumpLocation+1));
+            } else {
+                count = 1;
+                uint tmp;
+                for(; i != programLength; i++) {
+                    if(b == (tmp=uint(program[i]))) {
+                        count++;
+                    } else if(lookup[uint(tmp)]) {
+                        break;
+                    }
+                }
+                if(lookup[uint(b)]) {
+                    cleanProgram[cleanPPtr++] = bytes32(b * BITSHIFT | count);
+                    if(b == PERIOD) hasOutput = true;
+                }
+            }
+        } while(i != programLength);
+        return (hasOutput, cleanProgram, cleanPPtr);
+    }
+
+    function runProgram(
+        bytes32[] memory program,
+        bytes memory input,
+        uint[2048] memory data,
+        uint oPtr,
+        uint dPtr,
+        uint iPtr,
+        uint pPtr,
+        uint programLength
+    )
+        internal
+        pure
+        returns (uint)
+    {
+        uint dCache;
+        while(pPtr != programLength) {
+            // Read next command
+            bytes32 line = program[pPtr++];
+            uint cmd = uint(line &amp; CMD_MASK);
+            uint n = uint(line &amp; N_MASK);
+
+            // Interpret
+            if(cmd == R_BRACKET_SHIFTED) {
+                if(dCache != 0) pPtr = n;
+            } else if(cmd == PLUS_SHIFTED) {
+                dCache = (dCache + n) &amp; 255;
+            } else if(cmd == MINUS_SHIFTED) {
+                dCache = (dCache - n) &amp; 255;
+            } else if(cmd == R_SHIFT_SHIFTED) {
+                data[dPtr] = dCache;
+                dPtr += n;
+                dCache = data[dPtr];
+            } else if(cmd == L_SHIFT_SHIFTED) {
+                data[dPtr] = dCache;
+                dPtr -= n;
+                dCache = uint8(data[dPtr]);
+            } else if(cmd == COMMA_SHIFTED) {
+                iPtr += n;
+                dCache = uint8(data[dPtr] = uint8(input[iPtr]));
+            } else if(cmd == PERIOD_SHIFTED) {
+                while(n-- != 0) data[oPtr++] = dCache; // cheaper than storing to var
+            } else if(cmd == L_BRACKET_SHIFTED) {
+                if(dCache == 0) pPtr = n;
+            }
+        }
+
+        return oPtr;
+    }
+}
+
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

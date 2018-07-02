@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 1d6ae54d...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/indexof">String search</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x888888417655103...</a>
+        <tr><th>Submitted at</th><td>2018-27-29</td></tr>
+        <tr><th>Gas used</th><td>288398</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity 0.4.24;
+
+contract IndexOf {
+    function indexOf(
+        string haystack,
+        string needle
+    ) public pure returns(int) {
+        bytes memory hsBytes = bytes(haystack);
+        bytes memory nBytes = bytes(needle);
+        if (nBytes.length == 0) {
+            return 0;
+        }
+        if (hsBytes.length &lt; nBytes.length) {
+            return -1;
+        }
+        if (nBytes.length == 1) {
+            return findOne(hsBytes, nBytes[0]);
+        }
+        return findMuch(hsBytes, nBytes);
+    }
+
+    function findOne(
+        bytes hsBytes,
+        byte nByte
+    ) private pure returns (int) {
+        int i;
+        while (uint(i) &lt; hsBytes.length) {
+            if (hsBytes[uint(i++)] == nByte) {
+                return i-1;
+            }
+        }
+        return -1;
+    }
+
+    function findMuch(
+        bytes hsBytes,
+        bytes nBytes
+    ) private pure returns (int h) {
+        int hsLen = int(hsBytes.length);
+        int nLen = int(nBytes.length);
+        int flag = hsLen-(nLen-1);
+        int n;
+        while (h &lt; flag) {
+            if (hsBytes[uint(h)] != nBytes[0]) {
+                h += 1;
+                continue;
+            }
+            n = nLen - 1;
+            while (true) {
+                if (hsBytes[uint(h)+uint(n)] != nBytes[uint(n)]) { break; }
+                if (--n == 0) { return; }
+            }
+            n = 0;
+            while (true) {
+                if (nBytes[uint(n)] == hsBytes[uint(h)+uint(nLen)]) { break; }
+                if (++n == nLen) { break; }
+            }
+            if (n != nLen) {
+                h += nLen - n;
+                continue;
+            }
+            h += nLen;
+        }
+        return -1;
+    }
+}
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

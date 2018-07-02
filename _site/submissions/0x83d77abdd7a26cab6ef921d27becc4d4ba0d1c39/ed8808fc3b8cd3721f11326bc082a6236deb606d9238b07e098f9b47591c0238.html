@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission ed8808fc...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/unique">Remove duplicate elements</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0x83d77abdd7a26cab6ef921d27becc4d4ba0d1c39/">0x83d77abdd7a26ca...</a>
+        <tr><th>Submitted at</th><td>2018-37-13</td></tr>
+        <tr><th>Gas used</th><td>957471</td></tr>
+    </table>
+    <pre><code class="language-solidity">pragma solidity 0.4.24;
+
+
+contract Unique {
+    /**
+     * @dev Removes all but the first occurrence of each element from a list of
+     *      integers, preserving the order of original elements, and returns the list.
+     *
+     * The input list may be of any length.
+     *
+     * @param input The list of integers to uniquify.
+     * @return The input list, with any duplicate elements removed.
+     */
+
+    uint public a;
+    uint public b;
+    uint public c;
+    uint public d;
+    uint public e;
+
+    constructor() public {
+        a=1;
+        b=1;
+        c=1;
+        d=1;
+        e=1;
+    }
+
+    function uniquify(uint[] input) public view returns(uint[] ret) {
+        a=0;
+        b=0;
+        c=0;
+        d=0;
+        e=0;
+        uint inputLength = input.length;
+        if(inputLength &lt; 2) {
+            return input;
+        }
+
+
+        uint[256][2] memory hashToNumber;
+        uint[] memory index = new uint[](inputLength);
+        uint counter;
+        bool nullValue;
+
+        for(uint i; i &lt; inputLength; ++i) {
+            uint hash = input[i] &amp;255;
+
+
+            if(hashToNumber[0][hash]==0 &amp;&amp; input[i] != 0) {
+                hashToNumber[0][hash] = input[i];
+                index[counter] = input[i];
+                ++counter;
+            }
+            else if(hashToNumber[0][hash]!=0 &amp;&amp; input[i]!=hashToNumber[0][hash]) {
+                hashToNumber[1][hash] = input[i];
+                index[counter] = input[i];
+                counter++;
+            }
+            else if(!nullValue &amp;&amp; input[i] == 0){
+                nullValue = true;
+                counter++;
+            }
+        }
+
+        ret = new uint[](counter);
+        for(uint j; j &lt; counter; ++j) {
+            ret[j] = index[j];
+        }
+    }
+}
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

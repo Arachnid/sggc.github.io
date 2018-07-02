@@ -1,0 +1,34 @@
+---
+layout: base
+---
+<div class="container">
+    {% assign challenge=site.data.challenges[page.challenge] %}
+    <h1>{{challenge.title}}: Best scores for each user</h1>
+    <p>{{ challenge.description }}</p>
+    <div class="row">
+        <div class="col-lg-6">
+            <h3>Standard</h3>
+            <table class="table">
+                <thead>
+                    <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                </thead>
+                {% assign scores=site.pages|where:"layout","submission"|where:"challenge",page.challenge|where:"wild",false|sort:"gas"|group_by:"submitter" %}
+                {% for score in scores %}
+                    <tr><td><a href="{{score.items[0].url}}">{{ forloop.index }}</a></td><td><a href="/submissions/{{score.name}}/">{{ score.name|truncate:20 }}</a></td><td>{{ score.items[0].gas }}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="col-lg-6">
+            <h3>Wild</h3>
+            <table class="table">
+                <thead>
+                    <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                </thead>
+                {% assign scores=site.pages|where:"layout","submission"|where:"challenge",page.challenge|sort:"gas"|group_by:"submitter" %}
+                {% for score in scores %}
+                    <tr><td><a href="{{score.items[0].url}}">{{ forloop.index }}</a></td><td><a href="/submissions/{{score.name}}/">{{ score.name|truncate:20 }}</a></td><td>{{ score.items[0].gas }}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>

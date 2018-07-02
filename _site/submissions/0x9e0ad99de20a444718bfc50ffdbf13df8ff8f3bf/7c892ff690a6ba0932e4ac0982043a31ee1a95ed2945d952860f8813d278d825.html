@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>Submission 7c892ff6...</h1>
+    <table class="table">
+        <tr><th>Challenge</th><td><a href="/challenges/brainfuck">BrainFuck interpreter</a></td></tr>
+        <tr><th>Submitter</th><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/">0x9e0ad99de20a444...</a>
+        <tr><th>Submitted at</th><td>2018-04-26</td></tr>
+        <tr><th>Gas used</th><td>2400190</td></tr>
+    </table>
+    <pre><code class="language-solidity">/**
+ * This file is part of the 1st Solidity Gas Golfing Contest.
+ *
+ * This work is licensed under Creative Commons Attribution ShareAlike 3.0.
+ * https://creativecommons.org/licenses/by-sa/3.0/
+ */
+
+pragma solidity 0.4.24;
+
+contract BrainFuck {
+    /**
+     * @dev Executes a BrainFuck program, as described at https://en.wikprogramPointeredia.org/wiki/Brainfuck.
+     *
+     * Memory cells, input, and output values are all expected to be 8 bit
+     * integers. Incrementing past 255 should overflow to 0, and decrementing
+     * below 0 should overflow to 255.
+     *
+     * Programs and input streams may be of any length. The memory tape starts
+     * at cell 0, and will never be moved below 0 or above 1023. No program will
+     * output more than 1024 values.
+     *
+     * @param program The BrainFuck program.
+     * @param input The program's input stream.
+     * @return The program's output stream. Should be exactly the length of the
+     *          number of outputs produced by the program.
+     */
+    function execute(bytes program, bytes input) public pure returns(bytes) {
+        //v2.2
+        uint inputPointer = 0;
+        uint outputPointer = 0;
+        uint memoryPointer = 0;
+        uint programPointer = 0;
+        uint depth = 0;
+        uint counterInstruction = 0;
+        bytes memory mem = new bytes(1024);
+        bytes memory output = new bytes(1024);
+
+        //filter input program
+        while(programPointer&lt;program.length){
+            instruction = bytes(program)[programPointer];
+            if(instruction&amp;0x0F &lt; 0x0B){
+                programPointer++;
+                continue;
+            }
+            if(instruction &gt; 0x5D){
+                programPointer++;
+                continue;
+            }
+            if(instruction == 0x3E || instruction == 0x2B)
+            {
+                counterInstruction = 1;
+                while(instruction == bytes(program)[programPointer+counterInstruction])
+                    counterInstruction++;
+                output[outputPointer] = instruction;
+                output[outputPointer+1] = bytes1(counterInstruction);
+                outputPointer = outputPointer+2;
+                programPointer = programPointer + counterInstruction;
+            }else{
+                output[outputPointer] = instruction;
+                outputPointer++;
+                programPointer++;
+            }  
+        }
+
+        bytes memory finalOutput = new bytes(outputPointer);
+        for(programPointer = 0;programPointer&lt;outputPointer;programPointer++)
+            finalOutput[programPointer] = output[programPointer];
+        
+
+        ///Find Index Position Loops
+        uint[6] memory indexPos;
+        for(programPointer = 0; programPointer &lt; finalOutput.length; programPointer++){
+            instruction = finalOutput[programPointer];
+            if(instruction == 0x5b || instruction == 0x5d ){
+                indexPos[inputPointer] = programPointer;
+                inputPointer++;
+                if(instruction == 0x5b)
+                    depth++;
+           }
+        }
+
+        outputPointer = 0;
+        inputPointer = 0;
+        bytes1 instruction;
+        for(programPointer = 0; programPointer &lt; finalOutput.length; programPointer++) {
+            instruction = finalOutput[programPointer];
+            if(instruction == "&gt;") {
+                counterInstruction = uint8(finalOutput[programPointer+1]);
+                memoryPointer = memoryPointer + counterInstruction;
+                programPointer++;
+            } else if(instruction == "+") {
+                counterInstruction = uint8(finalOutput[programPointer+1]);
+                mem[memoryPointer] = bytes1(uint8(mem[memoryPointer]) + counterInstruction);
+                programPointer++;
+            } else if(instruction == "-") {
+                mem[memoryPointer] = bytes1(uint8(mem[memoryPointer]) - 1);
+            } else if(instruction == "&lt;") {
+                memoryPointer--;
+            } else if(instruction == ".") {
+                output[outputPointer++] = mem[memoryPointer];
+            } else if(instruction == ",") {
+                mem[memoryPointer] = input[inputPointer++];
+            } else if(instruction == "[") {
+                if(mem[memoryPointer] == 0) {
+                    if(depth &gt; 1){
+                        if(programPointer == indexPos[0])
+                            programPointer = indexPos[5];
+                        else if (programPointer == indexPos[1])
+                            programPointer = indexPos[2];
+                        else
+                            programPointer = indexPos[4];
+                    }else
+                        programPointer = indexPos[1];
+                }
+            } else if(instruction == "]") {
+                if(mem[memoryPointer] != 0) {
+                    if(depth &gt; 1){
+                        if(programPointer == indexPos[2])
+                            programPointer = indexPos[1];
+                        else if (programPointer == indexPos[4])
+                            programPointer = indexPos[3];
+                        else
+                            programPointer = indexPos[0];
+                    }else
+                        programPointer = indexPos[0];
+                }
+            }
+        }
+
+        programPointer = 0;
+        bytes memory ret = new bytes(outputPointer);
+
+        for(programPointer = 0; programPointer &lt; outputPointer; programPointer++)
+            ret[programPointer] = output[programPointer];
+       
+        return ret;
+    }
+}
+</code></pre>
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

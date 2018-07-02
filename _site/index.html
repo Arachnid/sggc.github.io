@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style type="text/css">
+        .container {
+            margin-bottom: 2em;
+        }
+        body {
+            padding-top: 5em;
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">SGGC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#leaderboard">Leaderboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#faq">FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+    <h1>1st Solidity Gas Golfing Contest</h1>
+    <p>The Solidity Gas Golfing Contest was a competition for Solidity coders to produce the most gas-efficient code they can for a series of straightforward challenges. The 1st SGGC ran from 23 May to 30 June 2018.</p>
+    <p>Each challenge is divided into "Standard" and "Wild" categories. Entries in the "Wild" category may use any Solidity language feature, while entries in the "Standard" category are prohibited from using inline assembly.</p>
+    <p>The winner of each track received a 1 ether prize, sponsored by <a href="https://twitter.com/chain_security/status/1001031872783224832">ChainSecurity</a> and <a href="https://twitter.com/CryptoFinLabs/status/1004791972861640704">CryptoFin</a>.</p>
+    <p>Templates and documentation for each of the challenges, and test vectors to check code against, are at <a href="https://github.com/Arachnid/sggc">this truffle project</a> and <a href="https://github.com/embark-framework/sggc">this embark project</a>. Note that the test vectors used by the SGGC server are different from those provided.</p>
+</div>
+<div class="container">
+    <h1><a id="leaderboard">Leaderboard</a></h1>
+    <p>To qualify for the leaderboard, an entrant must have submitted valid solutions for all five challenges. Their score is the sum of the gas used for their best submission for each challenge.</p>
+    <div class="row">
+        <div class="col-lg-6">
+            <h3>Standard</h3>
+            
+            <table class="table">
+                <thead>
+                    <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                </thead>
+                
+                    <tr><td>1</td><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a></td><td>2868097</td></tr>
+                
+                    <tr><td>2</td><td><a href="/submissions/wicketh.eth/">wicketh.eth</a></td><td>3455962</td></tr>
+                
+                    <tr><td>3</td><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e615016c337edcda204758704b</a></td><td>3576871</td></tr>
+                
+                    <tr><td>4</td><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a></td><td>3660462</td></tr>
+                
+                    <tr><td>5</td><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x8888884176551035fc2465df63841ab1432e7350</a></td><td>4718873</td></tr>
+                
+                    <tr><td>6</td><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/">0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf</a></td><td>4748613</td></tr>
+                
+                    <tr><td>7</td><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/">0xabcdef0db461f2f88752c454aad3763c46a4160f</a></td><td>5115086</td></tr>
+                
+                    <tr><td>8</td><td><a href="/submissions/0xff3c2241cd767b735b26f3bd62c39b57ce02123d/">0xff3c2241cd767b735b26f3bd62c39b57ce02123d</a></td><td>6274768</td></tr>
+                
+                    <tr><td>9</td><td><a href="/submissions/michaelsproul.eth/">michaelsproul.eth</a></td><td>8280892</td></tr>
+                
+                    <tr><td>10</td><td><a href="/submissions/sggc.yuetloo.eth/">sggc.yuetloo.eth</a></td><td>9216268</td></tr>
+                
+                    <tr><td>11</td><td><a href="/submissions/logvinov.eth/">logvinov.eth</a></td><td>20081714</td></tr>
+                
+            </table>
+        </div>
+        <div class="col-lg-6">
+            <h3>Wild</h3>
+            
+            <table class="table">
+                <thead>
+                    <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                </thead>
+                
+                    <tr><td>1</td><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a></td><td>291367</td></tr>
+                
+                    <tr><td>2</td><td><a href="/submissions/wicketh.eth/">wicketh.eth</a></td><td>298982</td></tr>
+                
+                    <tr><td>3</td><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a></td><td>1252701</td></tr>
+                
+                    <tr><td>4</td><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e615016c337edcda204758704b</a></td><td>1775407</td></tr>
+                
+                    <tr><td>5</td><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a></td><td>2868097</td></tr>
+                
+                    <tr><td>6</td><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x8888884176551035fc2465df63841ab1432e7350</a></td><td>3238849</td></tr>
+                
+                    <tr><td>7</td><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/">0xabcdef0db461f2f88752c454aad3763c46a4160f</a></td><td>3845087</td></tr>
+                
+                    <tr><td>8</td><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/">0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf</a></td><td>4748613</td></tr>
+                
+                    <tr><td>9</td><td><a href="/submissions/0xff3c2241cd767b735b26f3bd62c39b57ce02123d/">0xff3c2241cd767b735b26f3bd62c39b57ce02123d</a></td><td>6274768</td></tr>
+                
+                    <tr><td>10</td><td><a href="/submissions/michaelsproul.eth/">michaelsproul.eth</a></td><td>8280892</td></tr>
+                
+                    <tr><td>11</td><td><a href="/submissions/sggc.yuetloo.eth/">sggc.yuetloo.eth</a></td><td>9216268</td></tr>
+                
+                    <tr><td>12</td><td><a href="/submissions/logvinov.eth/">logvinov.eth</a></td><td>17782787</td></tr>
+                
+            </table>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <h1>Challenge high scores</h1>
+    
+        <h2><a href="/challenges/sort">Integer sorting</a></h2>
+        <p>Sort a list of integers into ascending order.</p>
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>Standard</h3>
+                <table class="table">
+                    <thead>
+                        <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                    </thead>
+                    
+                    
+                        <tr><td><a href="/submissions/hyszeth.eth/f469820a676300d1d610b26b1754433ef43bed9356378261d32865f4a8e055b4">1</a></td><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a></td><td>653499</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/6bddcb012d766e9ce1f294497c46dcc2a18a05546abc0f0c0ff5f1957097f033">2</a></td><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/">0x9e0ad99de20a444...</a></td><td>693585</td></tr>
+                    
+                        <tr><td><a href="/submissions/wicketh.eth/5d78162525b7134d31d21d0c904d8596c37063794c1d3da995b17442d0c96856">3</a></td><td><a href="/submissions/wicketh.eth/">wicketh.eth</a></td><td>707249</td></tr>
+                    
+                        <tr><td><a href="/submissions/cottenio.eth/b1f02c1c158da58110eba8ec52f611c2c55415ef7bf114512e416463bacc8dac">4</a></td><td><a href="/submissions/cottenio.eth/">cottenio.eth</a></td><td>741234</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/872711acff62d2dd44d326cd9404b0deba7a3bd9aae4da92be7e30ad23ceaaa1">5</a></td><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e...</a></td><td>744429</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x2b7de7118763beab35e5b48e89c8ab4eb37e2756/615e7c5f2019f6fcf3350cc8217b45539fe627811921b984ca04ce4dfd4d47e9">6</a></td><td><a href="/submissions/0x2b7de7118763beab35e5b48e89c8ab4eb37e2756/">0x2b7de7118763bea...</a></td><td>808285</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x00f9474f1f603de1c3ba6fbe525de1ffb389125b/4e0539b5f1b03758884b1d2168e019555a04da15e0e2112b147420dd3d65995b">7</a></td><td><a href="/submissions/0x00f9474f1f603de1c3ba6fbe525de1ffb389125b/">0x00f9474f1f603de...</a></td><td>852720</td></tr>
+                    
+                        <tr><td><a href="/submissions/ricmoo.firefly.eth/61788b20d833be624ed3369ccd9902dc11cc977a13e995e19d2a20e4bd4eaeb8">8</a></td><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a></td><td>854843</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/af4ec405ab1860e6db29548170e9f7edb4af1d77f210a32b365d881ef3905492">9</a></td><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x888888417655103...</a></td><td>861797</td></tr>
+                    
+                        <tr><td><a href="/submissions/sggc.yuetloo.eth/9c7ad9693711782811ed49ebba118b1a3d50bc2e6de2836a1f1dfb792f0213cb">10</a></td><td><a href="/submissions/sggc.yuetloo.eth/">sggc.yuetloo.eth</a></td><td>867837</td></tr>
+                    
+                </table>
+            </div>
+            <div class="col-lg-6">
+                <h3>Wild</h3>
+                <table class="table">
+                    <thead>
+                        <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                    </thead>
+                    
+                    
+                        <tr><td><a href="/submissions/wicketh.eth/5807d6e83bba7a754a465ad1b54dca539b5083b0f820922788d23a383a06fb1a">1</a></td><td><a href="/submissions/wicketh.eth/">wicketh.eth</a></td><td>100539</td></tr>
+                    
+                        <tr><td><a href="/submissions/zac.creditmint.eth/67cffe10c4548daaac81b009657b554e127ed0659dfbcb94544eb186f416e539">2</a></td><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a></td><td>118126</td></tr>
+                    
+                        <tr><td><a href="/submissions/ricmoo.firefly.eth/b89fff263e83738af94ff0b1a28700ecfb749940d876a318524ef25a1fbdde09">3</a></td><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a></td><td>525934</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xec3281124d4c2fca8a88e3076c1e7749cfecb7f2/4b49aeec73bb3aea2d714f69a8b89bf995f140bf44d192b8bd8b1caa660bfeec">4</a></td><td><a href="/submissions/0xec3281124d4c2fca8a88e3076c1e7749cfecb7f2/">0xec3281124d4c2fc...</a></td><td>528351</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x6b9205614d2523d10d46182e30535de81fb434a5/cfb056a8cdcbadc57fbcd6326fe87dff0ca55642477a9467e014a34a67c269d1">5</a></td><td><a href="/submissions/0x6b9205614d2523d10d46182e30535de81fb434a5/">0x6b9205614d2523d...</a></td><td>585876</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x1dba1131000664b884a1ba238464159892252d3a/3eef71c18e59c463185578260e82c19deed005eac7320888c75bbb4ed59820c6">6</a></td><td><a href="/submissions/0x1dba1131000664b884a1ba238464159892252d3a/">0x1dba1131000664b...</a></td><td>592766</td></tr>
+                    
+                        <tr><td><a href="/submissions/hyszeth.eth/f469820a676300d1d610b26b1754433ef43bed9356378261d32865f4a8e055b4">7</a></td><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a></td><td>653499</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/6bddcb012d766e9ce1f294497c46dcc2a18a05546abc0f0c0ff5f1957097f033">8</a></td><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/">0x9e0ad99de20a444...</a></td><td>693585</td></tr>
+                    
+                        <tr><td><a href="/submissions/cottenio.eth/b1f02c1c158da58110eba8ec52f611c2c55415ef7bf114512e416463bacc8dac">9</a></td><td><a href="/submissions/cottenio.eth/">cottenio.eth</a></td><td>741234</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/872711acff62d2dd44d326cd9404b0deba7a3bd9aae4da92be7e30ad23ceaaa1">10</a></td><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e...</a></td><td>744429</td></tr>
+                    
+                </table>
+            </div>
+        </div>
+    
+        <h2><a href="/challenges/brainfuck">BrainFuck interpreter</a></h2>
+        <p>Implement an interpreter for the BrainFuck esoteric language.</p>
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>Standard</h3>
+                <table class="table">
+                    <thead>
+                        <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                    </thead>
+                    
+                    
+                        <tr><td><a href="/submissions/hyszeth.eth/d470f23fe1710fb4e6261f075985b64e623ae592f1337cc2e8b67c2857946b84">1</a></td><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a></td><td>947286</td></tr>
+                    
+                        <tr><td><a href="/submissions/wicketh.eth/d272b1892081a511d0d329aecb00fec1e8dbddd2c9ccc86eaba6450da4abf8f8">2</a></td><td><a href="/submissions/wicketh.eth/">wicketh.eth</a></td><td>1323506</td></tr>
+                    
+                        <tr><td><a href="/submissions/ricmoo.firefly.eth/b1e154ce22c634ccda63e09bade51f2c9c9449f5cc66a9b13fb17e6a51434f32">3</a></td><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a></td><td>1355175</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/4a98c59e9b72b380802f042ee3b74be4046eddd9aa8548fd6a630fc9d951c4fd">4</a></td><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e...</a></td><td>1460995</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/a5b6be6e4ce3ef263f65689fc00a5c2d12322a3f3b41de37ca3787fda57721a0">5</a></td><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x888888417655103...</a></td><td>1954870</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/b7d0b2072a653292c30706d8f0f0bb2bcaa4d3f441f648d0f49379c95eb14c11">6</a></td><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/">0xabcdef0db461f2f...</a></td><td>2194736</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/1af530bb4c1b14584c273635c29476393be783129e2a1f5bef047e1247d7aab2">7</a></td><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/">0x9e0ad99de20a444...</a></td><td>2299099</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xd0b40847c318da4b34bda6a12b0801387573f8cf/90a17dbd32f6e19cf2926dfac0b98c3625846d244e878d11d4f0d31a87f13d61">8</a></td><td><a href="/submissions/0xd0b40847c318da4b34bda6a12b0801387573f8cf/">0xd0b40847c318da4...</a></td><td>2643083</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xff3c2241cd767b735b26f3bd62c39b57ce02123d/d3aed5db24f3d2c096af1709e4c11fecef75a44953bd2afef433b70ab682c340">9</a></td><td><a href="/submissions/0xff3c2241cd767b735b26f3bd62c39b57ce02123d/">0xff3c2241cd767b7...</a></td><td>2742615</td></tr>
+                    
+                        <tr><td><a href="/submissions/kronosapiens.eth/3af374b96aea08c2c3169d6896e5d7fa1b876abda7ea5a2c4c212c066052e60b">10</a></td><td><a href="/submissions/kronosapiens.eth/">kronosapiens.eth</a></td><td>3715493</td></tr>
+                    
+                </table>
+            </div>
+            <div class="col-lg-6">
+                <h3>Wild</h3>
+                <table class="table">
+                    <thead>
+                        <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                    </thead>
+                    
+                    
+                        <tr><td><a href="/submissions/wicketh.eth/d8b7df1b4870904e310f4a8feff632ddaaf38a5fa0c06dbba70e2f766e2a8b52">1</a></td><td><a href="/submissions/wicketh.eth/">wicketh.eth</a></td><td>67064</td></tr>
+                    
+                        <tr><td><a href="/submissions/zac.creditmint.eth/78a88b533f70932cf905d7b94235ef158d6b2a26957872cbaa56d2f17ea3fd01">2</a></td><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a></td><td>68798</td></tr>
+                    
+                        <tr><td><a href="/submissions/ricmoo.firefly.eth/04ff9d3be9dbb9f5fae4ccb7c4468304ea3bab40ca47aaa7f097cb4d7a2a1e7e">3</a></td><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a></td><td>386093</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/c12d9ac2753727cebe57eae219e87ba1d088acaf9ab8f81480b9225d54571d27">4</a></td><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e...</a></td><td>577231</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xec3281124d4c2fca8a88e3076c1e7749cfecb7f2/2e986cb3cdfba368105dd7b31739b767832af354a0951b6179e6f66b18cb629c">5</a></td><td><a href="/submissions/0xec3281124d4c2fca8a88e3076c1e7749cfecb7f2/">0xec3281124d4c2fc...</a></td><td>787754</td></tr>
+                    
+                        <tr><td><a href="/submissions/hyszeth.eth/d470f23fe1710fb4e6261f075985b64e623ae592f1337cc2e8b67c2857946b84">6</a></td><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a></td><td>947286</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/475de3496188f9929ed240965f993c7af928dd0fc6e53f75d3548ea78f1616a9">7</a></td><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x888888417655103...</a></td><td>1850940</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/b7d0b2072a653292c30706d8f0f0bb2bcaa4d3f441f648d0f49379c95eb14c11">8</a></td><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/">0xabcdef0db461f2f...</a></td><td>2194736</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/1af530bb4c1b14584c273635c29476393be783129e2a1f5bef047e1247d7aab2">9</a></td><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/">0x9e0ad99de20a444...</a></td><td>2299099</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xd0b40847c318da4b34bda6a12b0801387573f8cf/90a17dbd32f6e19cf2926dfac0b98c3625846d244e878d11d4f0d31a87f13d61">10</a></td><td><a href="/submissions/0xd0b40847c318da4b34bda6a12b0801387573f8cf/">0xd0b40847c318da4...</a></td><td>2643083</td></tr>
+                    
+                </table>
+            </div>
+        </div>
+    
+        <h2><a href="/challenges/hexdecoder">Hex decoder</a></h2>
+        <p>Decode hex-encoded binary data.</p>
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>Standard</h3>
+                <table class="table">
+                    <thead>
+                        <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                    </thead>
+                    
+                    
+                        <tr><td><a href="/submissions/hyszeth.eth/4a1a75f166dc2973e45976a99b9185603ad00b64b0a4b3f6ac0d162ddf157448">1</a></td><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a></td><td>881979</td></tr>
+                    
+                        <tr><td><a href="/submissions/wicketh.eth/a57c300ec28bae3099b028e31d2fa264910cf8b79cae8d8e4a77705bc454c44f">2</a></td><td><a href="/submissions/wicketh.eth/">wicketh.eth</a></td><td>912835</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/91884fc32ecb043866b66c449c67589f242bf8cd50dff783d9235ef679bc19b7">3</a></td><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e...</a></td><td>971807</td></tr>
+                    
+                        <tr><td><a href="/submissions/ricmoo.firefly.eth/bbaf8aa610ec40cc47ccdf60527c3b39ccf0c3591470e1757ebedba2672c07b4">4</a></td><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a></td><td>983454</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/92c60db0e3d45fdd70a0b6e2d512f25338957246179c18fc9c3ed50ddfd31dfc">5</a></td><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/">0x9e0ad99de20a444...</a></td><td>1002861</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x64f80d64e241576a149553206e1f2209761a2e84/ee8bc4a904cd0ad0d352d0e7deafd588be33d2166d7a0bf412205fa52136e83b">6</a></td><td><a href="/submissions/0x64f80d64e241576a149553206e1f2209761a2e84/">0x64f80d64e241576...</a></td><td>1066430</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x31efd75bc0b5fbafc6015bd50590f4fdab6a3f22/88e289e03531eb7eba839c62869b1c9cfa2c7328b02dd80b2dca7d209625bcc7">7</a></td><td><a href="/submissions/0x31efd75bc0b5fbafc6015bd50590f4fdab6a3f22/">0x31efd75bc0b5fba...</a></td><td>1109151</td></tr>
+                    
+                        <tr><td><a href="/submissions/michaelsproul.eth/c5c705c9e5333e33bda557e25e0840aa520c23651efb27273cf4f6a215ed34e5">8</a></td><td><a href="/submissions/michaelsproul.eth/">michaelsproul.eth</a></td><td>1127851</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/593f813c62722f64799f6e8e127d0b31274cb7f0a26e4d6e9ff435afbecf71fd">9</a></td><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x888888417655103...</a></td><td>1208435</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xff2c5414a8f9d1c27b550175509c1056747f628a/8cb218ca37906ace0692b4f4b14c6fd45db78de8039e6cec8728e7fe6cdc3db6">10</a></td><td><a href="/submissions/0xff2c5414a8f9d1c27b550175509c1056747f628a/">0xff2c5414a8f9d1c...</a></td><td>1212152</td></tr>
+                    
+                </table>
+            </div>
+            <div class="col-lg-6">
+                <h3>Wild</h3>
+                <table class="table">
+                    <thead>
+                        <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                    </thead>
+                    
+                    
+                        <tr><td><a href="/submissions/zac.creditmint.eth/f424059e5eacd75985d857bdcd3dbb14de28aaf250f3694d001361268e34669d">1</a></td><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a></td><td>18634</td></tr>
+                    
+                        <tr><td><a href="/submissions/wicketh.eth/d8a590b7d81883940f477c2b982b071dd6623000c12bca2393b58f981fbe1d35">2</a></td><td><a href="/submissions/wicketh.eth/">wicketh.eth</a></td><td>20131</td></tr>
+                    
+                        <tr><td><a href="/submissions/ricmoo.firefly.eth/f80bb9462a044ac5a1034d11bca8dadceae32e84c0d2d88201fb3123a32b1bee">3</a></td><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a></td><td>30654</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x1dba1131000664b884a1ba238464159892252d3a/b9141f645479f5830bee26345e314278c0874adfbb5a97c57bcca7f27d6ba348">4</a></td><td><a href="/submissions/0x1dba1131000664b884a1ba238464159892252d3a/">0x1dba1131000664b...</a></td><td>36849</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/c9cc8e2490d8b1016b5e20786f0a988a0eab4c7ea4b90efe5b01f64be35f8c4b">5</a></td><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e...</a></td><td>54107</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x5034d12fa9879186a40e64372a9ce0a4cf4af707/5c68567eb2372e64ff2715ea498f106cd901f9e247c7ca07d3ee4016cd4d93cf">6</a></td><td><a href="/submissions/0x5034d12fa9879186a40e64372a9ce0a4cf4af707/">0x5034d12fa987918...</a></td><td>59128</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x06ae35566bc4c751f4aed215cc2c912705a5094a/2a459a33258ac6de737a5e4b6f9da36dec72c0e01bd59d1df7769f75f67017ba">7</a></td><td><a href="/submissions/0x06ae35566bc4c751f4aed215cc2c912705a5094a/">0x06ae35566bc4c75...</a></td><td>78539</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x01a32b7b34a870d06a398558bf85aaa4ed8272f5/2bb5eed9c7a3eb602af205a80e0c92a64cf0cbc1eb63e81173368777cc3696ef">8</a></td><td><a href="/submissions/0x01a32b7b34a870d06a398558bf85aaa4ed8272f5/">0x01a32b7b34a870d...</a></td><td>169039</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/d2ecc643f0e50cf44d5573952c3986fb7c47fabfa76720f478f5e2e7a3d999b8">9</a></td><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x888888417655103...</a></td><td>192500</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/ea80b57c6a355e0f05f0be1efc8c5905dc40b3895cf6b29dd4e9cb1db7208171">10</a></td><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/">0xabcdef0db461f2f...</a></td><td>192583</td></tr>
+                    
+                </table>
+            </div>
+        </div>
+    
+        <h2><a href="/challenges/indexof">String search</a></h2>
+        <p>Return the index of the first match of a substring in a string.</p>
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>Standard</h3>
+                <table class="table">
+                    <thead>
+                        <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                    </thead>
+                    
+                    
+                        <tr><td><a href="/submissions/hyszeth.eth/74d77d64b184d7e955b91a3dfe1ec2c27a4bffee769e5bef70725b40ae69987b">1</a></td><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a></td><td>81240</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/99bc06c37695d4333227fa00abab6165735e7c393fc55b90410fccdf69a49dca">2</a></td><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e...</a></td><td>90577</td></tr>
+                    
+                        <tr><td><a href="/submissions/wicketh.eth/12bb0ac5945b915780fa41d69cd302a981f98c28e252e0b82808c2f8391e35f2">3</a></td><td><a href="/submissions/wicketh.eth/">wicketh.eth</a></td><td>105956</td></tr>
+                    
+                        <tr><td><a href="/submissions/ricmoo.firefly.eth/308c8a8a143248aa75d952dc2ebcd10fee5ed4e9977febaf91656cb29445388e">4</a></td><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a></td><td>109638</td></tr>
+                    
+                        <tr><td><a href="/submissions/sggc.yuetloo.eth/91ce109fac7f98f808165958ce0b467583e29e161d16492f75a6f876cb43bfeb">5</a></td><td><a href="/submissions/sggc.yuetloo.eth/">sggc.yuetloo.eth</a></td><td>159135</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/30828799c2a943d78234a0078bbe1775ad62699e44dc9eec99705b70c314e6d9">6</a></td><td><a href="/submissions/0x9e0ad99de20a444718bfc50ffdbf13df8ff8f3bf/">0x9e0ad99de20a444...</a></td><td>216789</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/1d6ae54d26be475101581e4e8afd62c48711a958f296ec551c2abc5da23e6b27">7</a></td><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x888888417655103...</a></td><td>288398</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/7cdc0bfd808a8620bd5f0948539cdf37360112b5310c4ec208c1ae1fa4a31cb4">8</a></td><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/">0xabcdef0db461f2f...</a></td><td>304961</td></tr>
+                    
+                        <tr><td><a href="/submissions/makoto.gitcoin.eth/0f2ab403a840cd974cbfee8bb3025a1b6c744da31c69feb2572c960b0fc5b4a8">9</a></td><td><a href="/submissions/makoto.gitcoin.eth/">makoto.gitcoin.eth</a></td><td>327342</td></tr>
+                    
+                        <tr><td><a href="/submissions/michaelsproul.eth/11a45fa9b250d5a345c5221d2a357f189c66ab9926572a1e8d5c6af1e7a6894d">10</a></td><td><a href="/submissions/michaelsproul.eth/">michaelsproul.eth</a></td><td>330926</td></tr>
+                    
+                </table>
+            </div>
+            <div class="col-lg-6">
+                <h3>Wild</h3>
+                <table class="table">
+                    <thead>
+                        <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                    </thead>
+                    
+                    
+                        <tr><td><a href="/submissions/zac.creditmint.eth/ae95aa3038c6c7bbcc47d274b1b3cb86e1b148428a27b4baa26d9bdaf5d49e72">1</a></td><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a></td><td>10670</td></tr>
+                    
+                        <tr><td><a href="/submissions/wicketh.eth/726fc5d0ec96f5d5d170055a29264e5e047fe36b492023d78548df9904be9fc2">2</a></td><td><a href="/submissions/wicketh.eth/">wicketh.eth</a></td><td>25500</td></tr>
+                    
+                        <tr><td><a href="/submissions/ricmoo.firefly.eth/e00537936bfb516955a13202f9c72eb703670b0bcbd4bc3a73f2733442cb8365">3</a></td><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a></td><td>55413</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/b8426cb4e3ff116b528d92d2b5e77cb19de2f43a75e93c1cbafe4b9e3a393cff">4</a></td><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/">0xabcdef0db461f2f...</a></td><td>57906</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/45e9d68a19b20e0c71e58d87f943720067b783e5fa04c06835b7f93c8622c401">5</a></td><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x888888417655103...</a></td><td>57906</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x1dba1131000664b884a1ba238464159892252d3a/3f058ba13c6500a1f1c8b36fd80d42ae834094753d6c6cb1323675146d1110f6">6</a></td><td><a href="/submissions/0x1dba1131000664b884a1ba238464159892252d3a/">0x1dba1131000664b...</a></td><td>79862</td></tr>
+                    
+                        <tr><td><a href="/submissions/hyszeth.eth/74d77d64b184d7e955b91a3dfe1ec2c27a4bffee769e5bef70725b40ae69987b">7</a></td><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a></td><td>81240</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/99bc06c37695d4333227fa00abab6165735e7c393fc55b90410fccdf69a49dca">8</a></td><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e...</a></td><td>90577</td></tr>
+                    
+                        <tr><td><a href="/submissions/logvinov.eth/de17af7c639ff3170cba40998f53f90415c31b02154a080caa2cfd91340716e8">9</a></td><td><a href="/submissions/logvinov.eth/">logvinov.eth</a></td><td>97804</td></tr>
+                    
+                        <tr><td><a href="/submissions/sggc.yuetloo.eth/91ce109fac7f98f808165958ce0b467583e29e161d16492f75a6f876cb43bfeb">10</a></td><td><a href="/submissions/sggc.yuetloo.eth/">sggc.yuetloo.eth</a></td><td>159135</td></tr>
+                    
+                </table>
+            </div>
+        </div>
+    
+        <h2><a href="/challenges/unique">Remove duplicate elements</a></h2>
+        <p>Given a list, remove duplicate elements, while preserving the order of the elements.</p>
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>Standard</h3>
+                <table class="table">
+                    <thead>
+                        <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                    </thead>
+                    
+                    
+                        <tr><td><a href="/submissions/hyszeth.eth/5290f25c5f8c8a5f9cfc88560a9f9a38980ad2343877982fa2d13ef44bb823bb">1</a></td><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a></td><td>304093</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/644669bc7c08d448ef31e4bb0238bd952a6660c006636f82b8a06f9ffdab0d37">2</a></td><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e...</a></td><td>309063</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xe82d5b10ad98d34df448b07a5a62c1affbef758f/674ed20002b27b9f87da17c4ebc1399622f42a2b88a2bf287d41bd4de058d7ad">3</a></td><td><a href="/submissions/0xe82d5b10ad98d34df448b07a5a62c1affbef758f/">0xe82d5b10ad98d34...</a></td><td>333079</td></tr>
+                    
+                        <tr><td><a href="/submissions/ricmoo.firefly.eth/2acfe53784b4f0876ade95961a0fb9f3a7ad78b07ebf15ae916bd500a8b7036d">4</a></td><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a></td><td>357352</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xd0b40847c318da4b34bda6a12b0801387573f8cf/4a94b17971c78142d0bbf4484ddbc382b27e0c5a0e67db0eac6e378889d26def">5</a></td><td><a href="/submissions/0xd0b40847c318da4b34bda6a12b0801387573f8cf/">0xd0b40847c318da4...</a></td><td>390527</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/9d92db7e45e0bc585330e147134fba10545689ca37cae3a20af8076cc72de4f6">6</a></td><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x888888417655103...</a></td><td>405373</td></tr>
+                    
+                        <tr><td><a href="/submissions/wicketh.eth/d6cd8f3107e7e1c5abe6bbf6e467c20078878e43590acb5c27e398bd27574ed3">7</a></td><td><a href="/submissions/wicketh.eth/">wicketh.eth</a></td><td>406416</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xea674fdde714fd979de3edf0f56aa9716b898ec8/ccf7e63696d947bf494a3eb4c88b32c0001b3e9d2254a08ab552564045cca686">8</a></td><td><a href="/submissions/0xea674fdde714fd979de3edf0f56aa9716b898ec8/">0xea674fdde714fd9...</a></td><td>439389</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/c0b1acac66b79f48a0a1dd1a7fde6a405e9dea156e0beafc3bb285d32118bc17">9</a></td><td><a href="/submissions/0xabcdef0db461f2f88752c454aad3763c46a4160f/">0xabcdef0db461f2f...</a></td><td>516483</td></tr>
+                    
+                        <tr><td><a href="/submissions/michaelsproul.eth/5c444da691352bc7844a1540b3c94da40ea0cb86ecaddadb44b9a436ed5896e7">10</a></td><td><a href="/submissions/michaelsproul.eth/">michaelsproul.eth</a></td><td>527619</td></tr>
+                    
+                </table>
+            </div>
+            <div class="col-lg-6">
+                <h3>Wild</h3>
+                <table class="table">
+                    <thead>
+                        <tr><th>Rank</th><th>Submitter</th><th>Gas used</th></tr>
+                    </thead>
+                    
+                    
+                        <tr><td><a href="/submissions/zac.creditmint.eth/934b12f284eec7e7dc5adb396a1542969d31f6e0d449032e714b702596949de7">1</a></td><td><a href="/submissions/zac.creditmint.eth/">zac.creditmint.eth</a></td><td>75139</td></tr>
+                    
+                        <tr><td><a href="/submissions/wicketh.eth/ec7f8640d5c93b6305c6ed9ee023c74bcbfee9b3ce64aef03c2f0be262585d9f">2</a></td><td><a href="/submissions/wicketh.eth/">wicketh.eth</a></td><td>85748</td></tr>
+                    
+                        <tr><td><a href="/submissions/ricmoo.firefly.eth/5908c46eaabb04402c6a5a6c139258147006c3773f4bc20b31bf194cebc2f309">3</a></td><td><a href="/submissions/ricmoo.firefly.eth/">ricmoo.firefly.eth</a></td><td>254607</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/68557fb49c8df335cf96e5b4decb76c50ef54f642e44bcadeda9edc2694b8ad6">4</a></td><td><a href="/submissions/0x8888884176551035fc2465df63841ab1432e7350/">0x888888417655103...</a></td><td>275706</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x1dba1131000664b884a1ba238464159892252d3a/7e550dba6a0a6138be88ecc9ac08539d19a48aea03bcf88672b8a84878576adb">5</a></td><td><a href="/submissions/0x1dba1131000664b884a1ba238464159892252d3a/">0x1dba1131000664b...</a></td><td>278268</td></tr>
+                    
+                        <tr><td><a href="/submissions/hyszeth.eth/5290f25c5f8c8a5f9cfc88560a9f9a38980ad2343877982fa2d13ef44bb823bb">6</a></td><td><a href="/submissions/hyszeth.eth/">hyszeth.eth</a></td><td>304093</td></tr>
+                    
+                        <tr><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/644669bc7c08d448ef31e4bb0238bd952a6660c006636f82b8a06f9ffdab0d37">7</a></td><td><a href="/submissions/0x53b21be84eece2e615016c337edcda204758704b/">0x53b21be84eece2e...</a></td><td>309063</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xe82d5b10ad98d34df448b07a5a62c1affbef758f/674ed20002b27b9f87da17c4ebc1399622f42a2b88a2bf287d41bd4de058d7ad">8</a></td><td><a href="/submissions/0xe82d5b10ad98d34df448b07a5a62c1affbef758f/">0xe82d5b10ad98d34...</a></td><td>333079</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xd0b40847c318da4b34bda6a12b0801387573f8cf/4a94b17971c78142d0bbf4484ddbc382b27e0c5a0e67db0eac6e378889d26def">9</a></td><td><a href="/submissions/0xd0b40847c318da4b34bda6a12b0801387573f8cf/">0xd0b40847c318da4...</a></td><td>390527</td></tr>
+                    
+                        <tr><td><a href="/submissions/0xea674fdde714fd979de3edf0f56aa9716b898ec8/ccf7e63696d947bf494a3eb4c88b32c0001b3e9d2254a08ab552564045cca686">10</a></td><td><a href="/submissions/0xea674fdde714fd979de3edf0f56aa9716b898ec8/">0xea674fdde714fd9...</a></td><td>439389</td></tr>
+                    
+                </table>
+            </div>
+        </div>
+    
+</div>
+<div class="container">
+    <h1><a id="faq">FAQ</a></h1>
+
+    <h2>What version of Solidity are you using?</h2>
+    <p>SGCC is pinned to use version 0.4.24. Optimisation is enabled and set to 200 iterations.</p>
+
+    <h2>Why do some entrants have names instead of addresses?</h2>
+    <p>SGGC supports <a href="https://ens.domains/">ENS</a> reverse resolution. If an entrant supplies an address that has reverse resolution configured, we will display the entrant's ENS name instead of their address.</p>
+    <p>You can configure your own ENS reverse record on the 'Reverse Record' tab of <a href="https://manager.ens.domains/">the ENS Manager DApp</a>.</p>
+
+    <h2>Is there a prize?</h2>
+    <p>ChainSecurity <a href="https://twitter.com/chain_security/status/1001031872783224832">have offered</a> 0.5 ETH each for the winner of the Standard and Wild tracks.</p>
+    <p>CryptoFin have <a href="https://blog.cryptofin.io/driving-solidity-gas-fees-into-the-green-84f9656b6932">matched this contribution</a>, bringing the total prize to 1 ether for each track.</p>
+    <p>In addition, you can expect the adulation of your peers and colleagues. We may also create an <a href="https://eips.ethereum.org/EIPS/eip-721">NFT</a> for the winners.</p>
+
+    <h2>Why don't I show up on the leaderboard?</h2>
+    <p>To be included on the leaderboard, you must have submitted at least one entry in each challenge. Your score will be the sum of the gas usage your best entry for each challenge.</p>
+
+    <h2>Why is my submission failing? It works in Truffle!</h2>
+    <p>The SGGC server has a secret set of test vectors, different from the public ones. They will test some edge cases that the public set do not - make sure your code handles every scenario you can think of!</p>
+
+    <h2>Why is the gas usage of my submission different to Truffle?</h2>
+    <p>The SGGC server has a secret set of test vectors, which will result in different gas consumption. It also measures gas usage slightly differently to truffle, counting only the execution cost, while Truffle also accounts for the gas cost for the call data.</p>
+    <p>If your submission is using a lot more gas than expected, check to see how your code might handle worst-case inputs. Can you craft an input that makes it perform poorly?</p>
+
+    <h2>Can other entrants see my submission?</h2>
+    <p>During the contest, only the scores of the leading players and entries are available. Once the contest is over, the source of all valid entries will be published on GitHub.</p>
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>
